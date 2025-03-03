@@ -24,13 +24,13 @@ struct SecureInputOverlay: View {
                             .fill(.background)
                             .innerShadow(
                                 using: RoundedRectangle(cornerRadius: 12),
-                                 stroke: AngularGradient(
-                                     gradient: Gradient(colors: [.cyan, .blue, .yellow, .blue, .cyan]),
-                                     center: .center,
-                                     angle: shadowAngle
-                                 ),
-                                 width: shadowWidth
-                             )
+                                stroke: AngularGradient(
+                                    gradient: Gradient(colors: [.cyan, .blue, .yellow, .blue, .cyan]),
+                                    center: .center,
+                                    angle: shadowAngle
+                                ),
+                                width: shadowWidth
+                            )
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
@@ -43,12 +43,14 @@ struct SecureInputOverlay: View {
                     .padding(.top, 10)
                     .padding(.trailing, 10)
                     .popover(isPresented: $isPopover, arrowEdge: .bottom) {
-                        Text("""
-                        Secure Input is active. Secure Input is a macOS security feature that 
-                        prevents applications from reading keyboard events. This is enabled 
-                        automatically whenever Ghostty detects a password prompt in the terminal, 
-                        or at all times if `Ghostty > Secure Keyboard Entry` is active.
-                        """)
+                        Text(
+                            """
+                            Secure Input is active. Secure Input is a macOS security feature that 
+                            prevents applications from reading keyboard events. This is enabled 
+                            automatically whenever Ghostty detects a password prompt in the terminal, 
+                            or at all times if `Ghostty > Secure Keyboard Entry` is active.
+                            """
+                        )
                         .padding(.all)
                     }
             }

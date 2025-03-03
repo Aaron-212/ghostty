@@ -1,6 +1,6 @@
-import os
-import SwiftUI
 import GhosttyKit
+import SwiftUI
+import os
 
 struct Ghostty {
     // The primary logger used by the GhosttyKit libraries.
@@ -29,11 +29,12 @@ extension Ghostty {
 
     static var info: Info {
         let raw = ghostty_info()
-        let version = NSString(
-            bytes: raw.version,
-            length: Int(raw.version_len),
-            encoding: NSUTF8StringEncoding
-        ) ?? "unknown"
+        let version =
+            NSString(
+                bytes: raw.version,
+                length: Int(raw.version_len),
+                encoding: NSUTF8StringEncoding
+            ) ?? "unknown"
 
         return Info(mode: raw.build_mode, version: String(version))
     }
@@ -48,18 +49,18 @@ extension Ghostty {
         case toggle
 
         static func from(_ c: ghostty_action_secure_input_e) -> Self? {
-            switch (c) {
-            case GHOSTTY_SECURE_INPUT_ON:
-                return .on
+            switch c {
+                case GHOSTTY_SECURE_INPUT_ON:
+                    return .on
 
-            case GHOSTTY_SECURE_INPUT_OFF:
-                return .off
+                case GHOSTTY_SECURE_INPUT_OFF:
+                    return .off
 
-            case GHOSTTY_SECURE_INPUT_TOGGLE:
-                return .toggle
+                case GHOSTTY_SECURE_INPUT_TOGGLE:
+                    return .toggle
 
-            default:
-                return nil
+                default:
+                    return nil
             }
         }
     }
@@ -70,49 +71,49 @@ extension Ghostty {
 
         /// Initialize from a Ghostty API enum.
         static func from(direction: ghostty_action_goto_split_e) -> Self? {
-            switch (direction) {
-            case GHOSTTY_GOTO_SPLIT_PREVIOUS:
-                return .previous
+            switch direction {
+                case GHOSTTY_GOTO_SPLIT_PREVIOUS:
+                    return .previous
 
-            case GHOSTTY_GOTO_SPLIT_NEXT:
-                return .next
+                case GHOSTTY_GOTO_SPLIT_NEXT:
+                    return .next
 
-            case GHOSTTY_GOTO_SPLIT_UP:
-                return .up
+                case GHOSTTY_GOTO_SPLIT_UP:
+                    return .up
 
-            case GHOSTTY_GOTO_SPLIT_DOWN:
-                return .down
+                case GHOSTTY_GOTO_SPLIT_DOWN:
+                    return .down
 
-            case GHOSTTY_GOTO_SPLIT_LEFT:
-                return .left
+                case GHOSTTY_GOTO_SPLIT_LEFT:
+                    return .left
 
-            case GHOSTTY_GOTO_SPLIT_RIGHT:
-                return .right
+                case GHOSTTY_GOTO_SPLIT_RIGHT:
+                    return .right
 
-            default:
-                return nil
+                default:
+                    return nil
             }
         }
 
         func toNative() -> ghostty_action_goto_split_e {
-            switch (self) {
-            case .previous:
-                return GHOSTTY_GOTO_SPLIT_PREVIOUS
+            switch self {
+                case .previous:
+                    return GHOSTTY_GOTO_SPLIT_PREVIOUS
 
-            case .next:
-                return GHOSTTY_GOTO_SPLIT_NEXT
+                case .next:
+                    return GHOSTTY_GOTO_SPLIT_NEXT
 
-            case .up:
-                return GHOSTTY_GOTO_SPLIT_UP
+                case .up:
+                    return GHOSTTY_GOTO_SPLIT_UP
 
-            case .down:
-                return GHOSTTY_GOTO_SPLIT_DOWN
+                case .down:
+                    return GHOSTTY_GOTO_SPLIT_DOWN
 
-            case .left:
-                return GHOSTTY_GOTO_SPLIT_LEFT
+                case .left:
+                    return GHOSTTY_GOTO_SPLIT_LEFT
 
-            case .right:
-                return GHOSTTY_GOTO_SPLIT_RIGHT
+                case .right:
+                    return GHOSTTY_GOTO_SPLIT_RIGHT
             }
         }
     }
@@ -122,30 +123,30 @@ extension Ghostty {
         case up, down, left, right
 
         static func from(direction: ghostty_action_resize_split_direction_e) -> Self? {
-            switch (direction) {
-            case GHOSTTY_RESIZE_SPLIT_UP:
-                return .up;
-            case GHOSTTY_RESIZE_SPLIT_DOWN:
-                return .down;
-            case GHOSTTY_RESIZE_SPLIT_LEFT:
-                return .left;
-            case GHOSTTY_RESIZE_SPLIT_RIGHT:
-                return .right;
-            default:
-                return nil
+            switch direction {
+                case GHOSTTY_RESIZE_SPLIT_UP:
+                    return .up
+                case GHOSTTY_RESIZE_SPLIT_DOWN:
+                    return .down
+                case GHOSTTY_RESIZE_SPLIT_LEFT:
+                    return .left
+                case GHOSTTY_RESIZE_SPLIT_RIGHT:
+                    return .right
+                default:
+                    return nil
             }
         }
 
         func toNative() -> ghostty_action_resize_split_direction_e {
-            switch (self) {
-            case .up:
-                return GHOSTTY_RESIZE_SPLIT_UP;
-            case .down:
-                return GHOSTTY_RESIZE_SPLIT_DOWN;
-            case .left:
-                return GHOSTTY_RESIZE_SPLIT_LEFT;
-            case .right:
-                return GHOSTTY_RESIZE_SPLIT_RIGHT;
+            switch self {
+                case .up:
+                    return GHOSTTY_RESIZE_SPLIT_UP
+                case .down:
+                    return GHOSTTY_RESIZE_SPLIT_DOWN
+                case .left:
+                    return GHOSTTY_RESIZE_SPLIT_LEFT
+                case .right:
+                    return GHOSTTY_RESIZE_SPLIT_RIGHT
             }
         }
     }
@@ -163,34 +164,34 @@ extension Ghostty {
 
         /// The text to show in the clipboard confirmation prompt for a given request type
         func text() -> String {
-            switch (self) {
-            case .paste:
-                return """
-                Pasting this text to the terminal may be dangerous as it looks like some commands may be executed.
-                """
-            case .osc_52_read:
-                return """
-                An application is attempting to read from the clipboard.
-                The current clipboard contents are shown below.
-                """
-            case .osc_52_write:
-                return """
-                An application is attempting to write to the clipboard.
-                The content to write is shown below.
-                """
+            switch self {
+                case .paste:
+                    return """
+                        Pasting this text to the terminal may be dangerous as it looks like some commands may be executed.
+                        """
+                case .osc_52_read:
+                    return """
+                        An application is attempting to read from the clipboard.
+                        The current clipboard contents are shown below.
+                        """
+                case .osc_52_write:
+                    return """
+                        An application is attempting to write to the clipboard.
+                        The content to write is shown below.
+                        """
             }
         }
 
         static func from(request: ghostty_clipboard_request_e) -> ClipboardRequest? {
-            switch (request) {
-            case GHOSTTY_CLIPBOARD_REQUEST_PASTE:
-                return .paste
-            case GHOSTTY_CLIPBOARD_REQUEST_OSC_52_READ:
-                return .osc_52_read
-            case GHOSTTY_CLIPBOARD_REQUEST_OSC_52_WRITE:
-                return .osc_52_write(nil)
-            default:
-                return nil
+            switch request {
+                case GHOSTTY_CLIPBOARD_REQUEST_PASTE:
+                    return .paste
+                case GHOSTTY_CLIPBOARD_REQUEST_OSC_52_READ:
+                    return .osc_52_read
+                case GHOSTTY_CLIPBOARD_REQUEST_OSC_52_WRITE:
+                    return .osc_52_write(nil)
+                default:
+                    return nil
             }
         }
     }
@@ -319,4 +320,4 @@ extension Ghostty.Notification {
 }
 
 // Make the input enum hashable.
-extension ghostty_input_key_e : @retroactive Hashable {}
+extension ghostty_input_key_e: @retroactive Hashable {}

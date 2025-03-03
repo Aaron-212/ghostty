@@ -1,5 +1,5 @@
-import SwiftUI
 import GhosttyKit
+import SwiftUI
 
 extension Ghostty {
     /// A spittable terminal view is one where the terminal allows for "splits" (vertical and horizontal) within the
@@ -56,31 +56,31 @@ extension Ghostty {
             // ensures that the View stays around so we don't lose our state, but
             // also that the zoomed view on top can see through if background transparency
             // is enabled.
-            if (zoomedSurface == nil) {
+            if zoomedSurface == nil {
                 ZStack {
-                    switch (node) {
-                    case nil:
-                        Color(.clear)
+                    switch node {
+                        case nil:
+                            Color(.clear)
 
-                    case .leaf(let leaf):
-                        TerminalSplitLeaf(
-                            leaf: leaf,
-                            neighbors: .empty,
-                            node: $node
-                        )
+                        case .leaf(let leaf):
+                            TerminalSplitLeaf(
+                                leaf: leaf,
+                                neighbors: .empty,
+                                node: $node
+                            )
 
-                    case .split(let container):
-                        TerminalSplitContainer(
-                            neighbors: .empty,
-                            node: $node,
-                            container: container
-                        )
-                        .onReceive(pubZoom) { onZoom(notification: $0) }
-                        .onReceive(pubEqualize) { onEqualize(notification: $0) }
+                        case .split(let container):
+                            TerminalSplitContainer(
+                                neighbors: .empty,
+                                node: $node,
+                                container: container
+                            )
+                            .onReceive(pubZoom) { onZoom(notification: $0) }
+                            .onReceive(pubEqualize) { onEqualize(notification: $0) }
                     }
                 }
                 .navigationTitle(surfaceTitle ?? "Ghostty")
-                .id(node) // Needed for change detection on node
+                .id(node)  // Needed for change detection on node
             } else {
                 // On these events we want to reset the split state and call it.
                 let pubSplit = center.publisher(for: Notification.ghosttyNewSplit, object: zoomedSurface!)
@@ -129,7 +129,7 @@ extension Ghostty {
                 // If the notification is not a toggle zoom notification, we want to re-publish
                 // it after a short delay so that the split tree has a chance to re-establish
                 // so the proper view gets this notification.
-                if (notification.name != Notification.didToggleSplitZoom) {
+                if notification.name != Notification.didToggleSplitZoom {
                     // We have to wait ANOTHER tick since we just established.
                     DispatchQueue.main.async {
                         NotificationCenter.default.post(notification)
@@ -197,21 +197,23 @@ extension Ghostty {
             // being shown, and provides no callback to detect this.
             let alert = NSAlert()
             alert.messageText = "Close Terminal?"
-            alert.informativeText = "The terminal still has a running process. If you close the " +
-                "terminal the process will be killed."
+            alert.informativeText =
+                "The terminal still has a running process. If you close the " + "terminal the process will be killed."
             alert.addButton(withTitle: "Close the Terminal")
             alert.addButton(withTitle: "Cancel")
             alert.alertStyle = .warning
-            alert.beginSheetModal(for: window, completionHandler: { response in
-                switch (response) {
-                case .alertFirstButtonReturn:
-                    alert.window.orderOut(nil)
-                    node = nil
+            alert.beginSheetModal(
+                for: window,
+                completionHandler: { response in
+                    switch response {
+                        case .alertFirstButtonReturn:
+                            alert.window.orderOut(nil)
+                            node = nil
 
-                default:
-                    break
-                }
-            })
+                        default:
+                            break
+                    }
+                })
         }
 
         private func onNewSplit(notification: SwiftUI.Notification) {
@@ -223,22 +225,22 @@ extension Ghostty {
             guard let direction = directionAny as? ghostty_action_split_direction_e else { return }
             let splitDirection: SplitViewDirection
             let swap: Bool
-            switch (direction) {
-            case GHOSTTY_SPLIT_DIRECTION_RIGHT:
-                splitDirection = .horizontal
-                swap = false
-            case GHOSTTY_SPLIT_DIRECTION_LEFT:
-                splitDirection = .horizontal
-                swap = true
-            case GHOSTTY_SPLIT_DIRECTION_DOWN:
-                splitDirection = .vertical
-                swap = false
-            case GHOSTTY_SPLIT_DIRECTION_UP:
-                splitDirection = .vertical
-                swap = true
+            switch direction {
+                case GHOSTTY_SPLIT_DIRECTION_RIGHT:
+                    splitDirection = .horizontal
+                    swap = false
+                case GHOSTTY_SPLIT_DIRECTION_LEFT:
+                    splitDirection = .horizontal
+                    swap = true
+                case GHOSTTY_SPLIT_DIRECTION_DOWN:
+                    splitDirection = .vertical
+                    swap = false
+                case GHOSTTY_SPLIT_DIRECTION_UP:
+                    splitDirection = .vertical
+                    swap = true
 
-            default:
-                return
+                default:
+                    return
             }
 
             // Setup our new container since we are now split
@@ -270,8 +272,10 @@ extension Ghostty {
             // instead, giving the wrap around effect.
             // When other directions are provided, this can be nil, and early
             // returned.
-            guard let nextSurface = neighbors.get(direction: direction)?.preferredFocus(direction)
-                    ?? node?.firstOrLast(direction)?.surface else { return }
+            guard
+                let nextSurface = neighbors.get(direction: direction)?.preferredFocus(direction)
+                    ?? node?.firstOrLast(direction)?.surface
+            else { return }
 
             Ghostty.moveFocus(
                 to: nextSurface
@@ -283,7 +287,9 @@ extension Ghostty {
             // If this leaf is not part of a split then there is nothing to do
             guard let parent = leaf.parent else { return }
 
-            guard let directionAny = notification.userInfo?[Ghostty.Notification.ResizeSplitDirectionKey] else { return }
+            guard let directionAny = notification.userInfo?[Ghostty.Notification.ResizeSplitDirectionKey] else {
+                return
+            }
             guard let direction = directionAny as? Ghostty.SplitResizeDirection else { return }
 
             guard let amountAny = notification.userInfo?[Ghostty.Notification.ResizeSplitAmountKey] else { return }
@@ -309,88 +315,95 @@ extension Ghostty {
                 resizeIncrements: .init(width: 1, height: 1),
                 resizePublisher: container.resizeEvent,
                 left: {
-                let neighborKey: WritableKeyPath<SplitNode.Neighbors, SplitNode?> = container.direction == .horizontal ? \.right : \.down
+                    let neighborKey: WritableKeyPath<SplitNode.Neighbors, SplitNode?> =
+                        container.direction == .horizontal ? \.right : \.down
 
-                TerminalSplitNested(
-                    node: closeableTopLeft(),
-                    neighbors: neighbors.update([
-                        neighborKey: container.bottomRight,
-                        \.next: container.bottomRight,
-                    ])
-                )
-            }, right: {
-                let neighborKey: WritableKeyPath<SplitNode.Neighbors, SplitNode?> = container.direction == .horizontal ? \.left : \.up
+                    TerminalSplitNested(
+                        node: closeableTopLeft(),
+                        neighbors: neighbors.update([
+                            neighborKey: container.bottomRight,
+                            \.next: container.bottomRight,
+                        ])
+                    )
+                },
+                right: {
+                    let neighborKey: WritableKeyPath<SplitNode.Neighbors, SplitNode?> =
+                        container.direction == .horizontal ? \.left : \.up
 
-                TerminalSplitNested(
-                    node: closeableBottomRight(),
-                    neighbors: neighbors.update([
-                        neighborKey: container.topLeft,
-                        \.previous: container.topLeft,
-                    ])
-                )
-            })
+                    TerminalSplitNested(
+                        node: closeableBottomRight(),
+                        neighbors: neighbors.update([
+                            neighborKey: container.topLeft,
+                            \.previous: container.topLeft,
+                        ])
+                    )
+                })
         }
 
         private func closeableTopLeft() -> Binding<SplitNode?> {
-            return .init(get: {
-                container.topLeft
-            }, set: { newValue in
-                if let newValue {
-                    container.topLeft = newValue
-                    return
-                }
+            return .init(
+                get: {
+                    container.topLeft
+                },
+                set: { newValue in
+                    if let newValue {
+                        container.topLeft = newValue
+                        return
+                    }
 
-                // Closing
-                container.topLeft.close()
-                node = container.bottomRight
+                    // Closing
+                    container.topLeft.close()
+                    node = container.bottomRight
 
-                switch (node) {
-                case .leaf(let l):
-                    l.parent = container.parent
-                case .split(let c):
-                    c.parent = container.parent
-                case .none:
-                    break
-                }
+                    switch node {
+                        case .leaf(let l):
+                            l.parent = container.parent
+                        case .split(let c):
+                            c.parent = container.parent
+                        case .none:
+                            break
+                    }
 
-                DispatchQueue.main.async {
-                    Ghostty.moveFocus(
-                        to: container.bottomRight.preferredFocus(),
-                        from: container.topLeft.preferredFocus()
-                    )
-                }
-            })
+                    DispatchQueue.main.async {
+                        Ghostty.moveFocus(
+                            to: container.bottomRight.preferredFocus(),
+                            from: container.topLeft.preferredFocus()
+                        )
+                    }
+                })
         }
 
         private func closeableBottomRight() -> Binding<SplitNode?> {
-            return .init(get: {
-                container.bottomRight
-            }, set: { newValue in
-                if let newValue {
-                    container.bottomRight = newValue
-                    return
-                }
+            return .init(
+                get: {
+                    container.bottomRight
+                },
+                set: { newValue in
+                    if let newValue {
+                        container.bottomRight = newValue
+                        return
+                    }
 
-                // Closing
-                container.bottomRight.close()
-                node = container.topLeft
+                    // Closing
+                    container.bottomRight.close()
+                    node = container.topLeft
 
-                switch (node) {
-                case .leaf(let l):
-                    l.parent = container.parent
-                case .split(let c):
-                    c.parent = container.parent
-                case .none:
-                    break
-                }
+                    switch node {
+                        case .leaf(let l):
+                            l.parent = container.parent
+                        case .split(let c):
+                            c.parent = container.parent
+                        case .none:
+                            break
+                    }
 
-                DispatchQueue.main.async {
-                    Ghostty.moveFocus(
-                        to: container.topLeft.preferredFocus(),
-                        from: container.bottomRight.preferredFocus()
-                    )
-                }
-            })
+                    DispatchQueue.main.async {
+                        Ghostty.moveFocus(
+                            to: container.topLeft.preferredFocus(),
+                            from: container.bottomRight.preferredFocus()
+                        )
+                    }
+                })
         }
     }
 
@@ -403,23 +416,23 @@ extension Ghostty {
 
         var body: some View {
             Group {
-                switch (node) {
-                case nil:
-                    Color(.clear)
+                switch node {
+                    case nil:
+                        Color(.clear)
 
-                case .leaf(let leaf):
-                    TerminalSplitLeaf(
-                        leaf: leaf,
-                        neighbors: neighbors,
-                        node: $node
-                    )
+                    case .leaf(let leaf):
+                        TerminalSplitLeaf(
+                            leaf: leaf,
+                            neighbors: neighbors,
+                            node: $node
+                        )
 
-                case .split(let container):
-                    TerminalSplitContainer(
-                        neighbors: neighbors,
-                        node: $node,
-                        container: container
-                    )
+                    case .split(let container):
+                        TerminalSplitContainer(
+                            neighbors: neighbors,
+                            node: $node,
+                            container: container
+                        )
                 }
             }
             .id(node)
@@ -446,12 +459,13 @@ extension Ghostty {
         guard (delay ?? 0) < maxDelay else { return }
 
         // We start at a 50 millisecond delay and do a doubling backoff
-        let nextDelay: TimeInterval = if let delay {
-            delay * 2
-        } else {
-            // 100 milliseconds
-            0.05
-        }
+        let nextDelay: TimeInterval =
+            if let delay {
+                delay * 2
+            } else {
+                // 100 milliseconds
+                0.05
+            }
 
         let work: DispatchWorkItem = .init {
             // If the callback runs before the surface is attached to a view

@@ -1,5 +1,5 @@
-import SwiftUI
 import GhosttyKit
+import SwiftUI
 
 extension Ghostty {
     /// The UIView implementation for a terminal surface.
@@ -59,7 +59,7 @@ extension Ghostty {
                 // TODO
                 return
             }
-            self.surface = surface;
+            self.surface = surface
         }
 
         required init?(coder: NSCoder) {
@@ -76,7 +76,7 @@ extension Ghostty {
             ghostty_surface_set_focus(surface, focused)
 
             // On macOS 13+ we can store our continuous clock...
-            if (focused) {
+            if focused {
                 focusInstant = ContinuousClock.now
             }
         }
@@ -100,9 +100,7 @@ extension Ghostty {
         // MARK: UIView
 
         override class var layerClass: AnyClass {
-            get {
-                return CAMetalLayer.self
-            }
+            return CAMetalLayer.self
         }
 
         override func didMoveToWindow() {

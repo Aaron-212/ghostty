@@ -19,12 +19,13 @@ struct ColorizedGhosttyIcon {
         guard let crt = NSImage(named: "CustomIconCRT") else { return nil }
         guard let gloss = NSImage(named: "CustomIconGloss") else { return nil }
 
-        let baseName = switch (frame) {
-        case .aluminum: "CustomIconBaseAluminum"
-        case .beige: "CustomIconBaseBeige"
-        case .chrome: "CustomIconBaseChrome"
-        case .plastic: "CustomIconBasePlastic"
-        }
+        let baseName =
+            switch frame {
+                case .aluminum: "CustomIconBaseAluminum"
+                case .beige: "CustomIconBaseBeige"
+                case .chrome: "CustomIconBaseChrome"
+                case .plastic: "CustomIconBasePlastic"
+            }
         guard let base = NSImage(named: baseName) else { return nil }
 
         // Apply our color in various ways to our layers.
@@ -34,22 +35,24 @@ struct ColorizedGhosttyIcon {
         guard let tintedGhost = ghost.tint(color: ghostColor) else { return nil }
 
         // Combine our layers using the proper blending modes
-        return.combine(images: [
-            base,
-            screen,
-            screenGradient,
-            ghost,
-            tintedGhost,
-            crt,
-            gloss,
-        ], blendingModes: [
-            .normal,
-            .normal,
-            .color,
-            .normal,
-            .color,
-            .overlay,
-            .normal,
-        ])
+        return .combine(
+            images: [
+                base,
+                screen,
+                screenGradient,
+                ghost,
+                tintedGhost,
+                crt,
+                gloss,
+            ],
+            blendingModes: [
+                .normal,
+                .normal,
+                .color,
+                .normal,
+                .color,
+                .overlay,
+                .normal,
+            ])
     }
 }

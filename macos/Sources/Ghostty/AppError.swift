@@ -1,3 +1,3 @@
 enum AppError: Error {
-  case surfaceCreateError
+    case surfaceCreateError
 }

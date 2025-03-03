@@ -1,6 +1,6 @@
-import SwiftUI
 import Combine
 import GhosttyKit
+import SwiftUI
 
 extension Ghostty {
     /// This enum represents the possible states that a node in the split tree can be in. It is either:
@@ -18,22 +18,22 @@ extension Ghostty {
         /// The parent of this node.
         var parent: Container? {
             get {
-                switch (self) {
-                case .leaf(let leaf):
-                    return leaf.parent
+                switch self {
+                    case .leaf(let leaf):
+                        return leaf.parent
 
-                case .split(let container):
-                    return container.parent
+                    case .split(let container):
+                        return container.parent
                 }
             }
 
             set {
-                switch (self) {
-                case .leaf(let leaf):
-                    leaf.parent = newValue
+                switch self {
+                    case .leaf(let leaf):
+                        leaf.parent = newValue
 
-                case .split(let container):
-                    container.parent = newValue
+                    case .split(let container):
+                        container.parent = newValue
                 }
             }
         }
@@ -48,12 +48,12 @@ extension Ghostty {
         }
 
         func topLeft() -> SurfaceView {
-            switch (self) {
-            case .leaf(let leaf):
-                return leaf.surface
+            switch self {
+                case .leaf(let leaf):
+                    return leaf.surface
 
-            case .split(let container):
-                return container.topLeft.topLeft()
+                case .split(let container):
+                    return container.topLeft.topLeft()
             }
         }
 
@@ -62,22 +62,22 @@ extension Ghostty {
         /// next view to send focus to.
         func preferredFocus(_ direction: SplitFocusDirection = .up) -> SurfaceView {
             let container: Container
-            switch (self) {
-            case .leaf(let leaf):
-                // noSplit is easy because there is only one thing to focus
-                return leaf.surface
+            switch self {
+                case .leaf(let leaf):
+                    // noSplit is easy because there is only one thing to focus
+                    return leaf.surface
 
-            case .split(let c):
-                container = c
+                case .split(let c):
+                    container = c
             }
 
             let node: SplitNode
-            switch (direction) {
-            case .previous, .up, .left:
-                node = container.bottomRight
+            switch direction {
+                case .previous, .up, .left:
+                    node = container.bottomRight
 
-            case .next, .down, .right:
-                node = container.topLeft
+                case .next, .down, .right:
+                    node = container.topLeft
             }
 
             return node.preferredFocus(direction)
@@ -92,38 +92,37 @@ extension Ghostty {
             // If there is no parent, simply ignore.
             guard let root = self.parent?.rootContainer() else { return nil }
 
-            switch (direction) {
-            case .next:
-                return root.firstLeaf()
-            case .previous:
-                return root.lastLeaf()
-            default:
-                return nil
+            switch direction {
+                case .next:
+                    return root.firstLeaf()
+                case .previous:
+                    return root.lastLeaf()
+                default:
+                    return nil
             }
         }
 
         /// Close the surface associated with this node. This will likely deinitialize the
         /// surface. At this point, the surface view in this node tree can never be used again.
         func close() {
-            switch (self) {
-            case .leaf(let leaf):
-                leaf.surface.close()
+            switch self {
+                case .leaf(let leaf):
+                    leaf.surface.close()
 
-            case .split(let container):
-                container.topLeft.close()
-                container.bottomRight.close()
+                case .split(let container):
+                    container.topLeft.close()
+                    container.bottomRight.close()
             }
         }
 
         /// Returns true if any surface in the split stack requires quit confirmation.
         func needsConfirmQuit() -> Bool {
-            switch (self) {
-            case .leaf(let leaf):
-                return leaf.surface.needsConfirmQuit
+            switch self {
+                case .leaf(let leaf):
+                    return leaf.surface.needsConfirmQuit
 
-            case .split(let container):
-                return container.topLeft.needsConfirmQuit() ||
-                    container.bottomRight.needsConfirmQuit()
+                case .split(let container):
+                    return container.topLeft.needsConfirmQuit() || container.bottomRight.needsConfirmQuit()
             }
         }
 
@@ -134,51 +133,49 @@ extension Ghostty {
 
         /// Find a surface view by UUID.
         func findUUID(uuid: UUID) -> SurfaceView? {
-            switch (self) {
-            case .leaf(let leaf):
-                if (leaf.surface.uuid == uuid) {
-                    return leaf.surface
-                }
+            switch self {
+                case .leaf(let leaf):
+                    if leaf.surface.uuid == uuid {
+                        return leaf.surface
+                    }
 
-                return nil
+                    return nil
 
-            case .split(let container):
-                return container.topLeft.findUUID(uuid: uuid) ??
-                    container.bottomRight.findUUID(uuid: uuid)
+                case .split(let container):
+                    return container.topLeft.findUUID(uuid: uuid) ?? container.bottomRight.findUUID(uuid: uuid)
             }
         }
 
         /// Returns true if the surface borders the top. Assumes the view is in the tree.
         func doesBorderTop(view: SurfaceView) -> Bool {
-            switch (self) {
-            case .leaf(let leaf):
-                return leaf.surface == view
+            switch self {
+                case .leaf(let leaf):
+                    return leaf.surface == view
 
-            case .split(let container):
-                switch (container.direction) {
-                case .vertical:
-                    return container.topLeft.doesBorderTop(view: view)
+                case .split(let container):
+                    switch container.direction {
+                        case .vertical:
+                            return container.topLeft.doesBorderTop(view: view)
 
-                case .horizontal:
-                    return container.topLeft.doesBorderTop(view: view) ||
-                        container.bottomRight.doesBorderTop(view: view)
-                }
+                        case .horizontal:
+                            return container.topLeft.doesBorderTop(view: view)
+                                || container.bottomRight.doesBorderTop(view: view)
+                    }
             }
         }
 
         /// Return the node for the given view if its in the tree.
         func leaf(for view: SurfaceView) -> Leaf? {
-            switch (self) {
-            case .leaf(let leaf):
-                if leaf.surface == view {
-                    return leaf
-                } else {
-                    return nil
-                }
+            switch self {
+                case .leaf(let leaf):
+                    if leaf.surface == view {
+                        return leaf
+                    } else {
+                        return nil
+                    }
 
-            case .split(let container):
-                return container.topLeft.leaf(for: view) ??
-                    container.bottomRight.leaf(for: view)
+                case .split(let container):
+                    return container.topLeft.leaf(for: view) ?? container.bottomRight.leaf(for: view)
             }
         }
 
@@ -191,12 +188,12 @@ extension Ghostty {
         /// Return all the leaves in this split node. This isn't very efficient but our split trees are never super
         /// deep so its not an issue.
         private func leaves() -> [Leaf] {
-            switch (self) {
-            case .leaf(let leaf):
-                return [leaf]
+            switch self {
+                case .leaf(let leaf):
+                    return [leaf]
 
-            case .split(let container):
-                return container.topLeft.leaves() + container.bottomRight.leaves()
+                case .split(let container):
+                    return container.topLeft.leaves() + container.bottomRight.leaves()
             }
         }
 
@@ -204,12 +201,12 @@ extension Ghostty {
 
         static func == (lhs: SplitNode, rhs: SplitNode) -> Bool {
             switch (lhs, rhs) {
-            case (.leaf(let lhs_v), .leaf(let rhs_v)):
-                return lhs_v === rhs_v
-            case (.split(let lhs_v), .split(let rhs_v)):
-                return lhs_v === rhs_v
-            default:
-                return false
+                case (.leaf(let lhs_v), .leaf(let rhs_v)):
+                    return lhs_v === rhs_v
+                case (.split(let lhs_v), .split(let rhs_v)):
+                    return lhs_v === rhs_v
+                default:
+                    return false
             }
         }
 
@@ -248,8 +245,9 @@ extension Ghostty {
             required convenience init(from decoder: Decoder) throws {
                 // Decoding uses the global Ghostty app
                 guard let del = NSApplication.shared.delegate,
-                      let appDel = del as? AppDelegate,
-                      let app = appDel.ghostty.app else {
+                    let appDel = del as? AppDelegate,
+                    let app = appDel.ghostty.app
+                else {
                     throw TerminalRestoreError.delegateInvalid
                 }
 
@@ -313,21 +311,21 @@ extension Ghostty {
             /// in the given direction, navigate up the tree until we find a
             /// container that is
             func resize(direction: SplitResizeDirection, amount: UInt16) {
-                 // We send a resize event to our publisher which will be
-                 // received by the SplitView.
-                switch (self.direction) {
-                case .horizontal:
-                    switch (direction) {
-                    case .left: resizeEvent.send(-Double(amount))
-                    case .right: resizeEvent.send(Double(amount))
-                    default: parent?.resize(direction: direction, amount: amount)
-                    }
-                case .vertical:
-                    switch (direction) {
-                    case .up: resizeEvent.send(-Double(amount))
-                    case .down: resizeEvent.send(Double(amount))
-                    default: parent?.resize(direction: direction, amount: amount)
-                    }
+                // We send a resize event to our publisher which will be
+                // received by the SplitView.
+                switch self.direction {
+                    case .horizontal:
+                        switch direction {
+                            case .left: resizeEvent.send(-Double(amount))
+                            case .right: resizeEvent.send(Double(amount))
+                            default: parent?.resize(direction: direction, amount: amount)
+                        }
+                    case .vertical:
+                        switch direction {
+                            case .up: resizeEvent.send(-Double(amount))
+                            case .down: resizeEvent.send(Double(amount))
+                            default: parent?.resize(direction: direction, amount: amount)
+                        }
                 }
             }
 
@@ -336,19 +334,19 @@ extension Ghostty {
             /// This function returns the weight of this container.
             func equalize() -> UInt {
                 let topLeftWeight: UInt
-                switch (topLeft) {
-                case .leaf:
-                    topLeftWeight = 1
-                case .split(let c):
-                    topLeftWeight = c.equalize()
+                switch topLeft {
+                    case .leaf:
+                        topLeftWeight = 1
+                    case .split(let c):
+                        topLeftWeight = c.equalize()
                 }
 
                 let bottomRightWeight: UInt
-                switch (bottomRight) {
-                case .leaf:
-                    bottomRightWeight = 1
-                case .split(let c):
-                    bottomRightWeight = c.equalize()
+                switch bottomRight {
+                    case .leaf:
+                        bottomRightWeight = 1
+                    case .split(let c):
+                        bottomRightWeight = c.equalize()
                 }
 
                 let weight = topLeftWeight + bottomRightWeight
@@ -367,11 +365,11 @@ extension Ghostty {
             /// useful for root container, so that we can find the top-left-most
             /// leaf.
             func firstLeaf() -> Leaf {
-                switch (self.topLeft) {
-                case .leaf(let leaf):
-                    return leaf
-                case .split(let s):
-                    return s.firstLeaf()
+                switch self.topLeft {
+                    case .leaf(let leaf):
+                        return leaf
+                    case .split(let s):
+                        return s.firstLeaf()
                 }
             }
 
@@ -379,11 +377,11 @@ extension Ghostty {
             /// useful for root container, so that we can find the bottom-right-
             /// most leaf.
             func lastLeaf() -> Leaf {
-                switch (self.bottomRight) {
-                case .leaf(let leaf):
-                    return leaf
-                case .split(let s):
-                    return s.lastLeaf()
+                switch self.bottomRight {
+                    case .leaf(let leaf):
+                        return leaf
+                    case .split(let s):
+                        return s.lastLeaf()
                 }
             }
 
@@ -399,10 +397,8 @@ extension Ghostty {
             // MARK: - Equatable
 
             static func == (lhs: Container, rhs: Container) -> Bool {
-                return lhs.app == rhs.app &&
-                    lhs.direction == rhs.direction &&
-                    lhs.topLeft == rhs.topLeft &&
-                    lhs.bottomRight == rhs.bottomRight
+                return lhs.app == rhs.app && lhs.direction == rhs.direction && lhs.topLeft == rhs.topLeft
+                    && lhs.bottomRight == rhs.bottomRight
             }
 
             // MARK: - Codable
@@ -417,8 +413,9 @@ extension Ghostty {
             required init(from decoder: Decoder) throws {
                 // Decoding uses the global Ghostty app
                 guard let del = NSApplication.shared.delegate,
-                      let appDel = del as? AppDelegate,
-                      let app = appDel.ghostty.app else {
+                    let appDel = del as? AppDelegate,
+                    let app = appDel.ghostty.app
+                else {
                     throw TerminalRestoreError.delegateInvalid
                 }
 
@@ -463,7 +460,7 @@ extension Ghostty {
 
             /// Get the node for a given direction.
             func get(direction: SplitFocusDirection) -> SplitNode? {
-                let map: [SplitFocusDirection : KeyPath<Self, SplitNode?>] = [
+                let map: [SplitFocusDirection: KeyPath<Self, SplitNode?>] = [
                     .previous: \.previous,
                     .next: \.next,
                     .up: \.up,

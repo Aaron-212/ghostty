@@ -5,7 +5,8 @@ extension View {
     func ghosttyIconImage() -> Image {
         #if os(macOS)
         if let delegate = NSApplication.shared.delegate as? AppDelegate,
-           let nsImage = delegate.appIcon {
+            let nsImage = delegate.appIcon
+        {
             return Image(nsImage: nsImage)
         }
         #endif

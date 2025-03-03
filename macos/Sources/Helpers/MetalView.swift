@@ -1,5 +1,5 @@
-import SwiftUI
 import MetalKit
+import SwiftUI
 
 /// Renders an MTKView with the given renderer class.
 struct MetalView<V: MTKView>: View {

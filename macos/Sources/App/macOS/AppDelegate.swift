@@ -1,14 +1,14 @@
 import AppKit
-import UserNotifications
+import GhosttyKit
 import OSLog
 import Sparkle
-import GhosttyKit
+import UserNotifications
 
 class AppDelegate: NSObject,
-                    ObservableObject,
-                    NSApplicationDelegate,
-                    UNUserNotificationCenterDelegate,
-                    GhosttyAppDelegate
+    ObservableObject,
+    NSApplicationDelegate,
+    UNUserNotificationCenterDelegate,
+    GhosttyAppDelegate
 {
     // The application logger. We should probably move this at some point to a dedicated
     // class/struct but for now it lives here! 🤷‍♂️
@@ -132,7 +132,7 @@ class AppDelegate: NSObject,
         UserDefaults.standard.register(defaults: [
             // Disable the automatic full screen menu item because we handle
             // it manually.
-            "NSFullScreenMenuItemEverywhere": false,
+            "NSFullScreenMenuItemEverywhere": false
         ])
     }
 
@@ -140,14 +140,14 @@ class AppDelegate: NSObject,
         // System settings overrides
         UserDefaults.standard.register(defaults: [
             // Disable this so that repeated key events make it through to our terminal views.
-            "ApplePressAndHoldEnabled": false,
+            "ApplePressAndHoldEnabled": false
         ])
 
         // Store our start time
         applicationLaunchTime = ProcessInfo.processInfo.systemUptime
 
         // Check if secure input was enabled when we last quit.
-        if (UserDefaults.standard.bool(forKey: "SecureInput") != SecureInput.shared.enabled) {
+        if UserDefaults.standard.bool(forKey: "SecureInput") != SecureInput.shared.enabled {
             toggleSecureInput(self)
         }
 
@@ -206,12 +206,12 @@ class AppDelegate: NSObject,
         // Observe our appearance so we can report the correct value to libghostty.
         self.appearanceObserver = NSApplication.shared.observe(
             \.effectiveAppearance,
-             options: [.new, .initial]
+            options: [.new, .initial]
         ) { _, change in
             guard let appearance = change.newValue else { return }
             guard let app = self.ghostty.app else { return }
             let scheme: ghostty_color_scheme_e
-            if (appearance.isDark) {
+            if appearance.isDark {
                 scheme = GHOSTTY_COLOR_SCHEME_DARK
             } else {
                 scheme = GHOSTTY_COLOR_SCHEME_LIGHT
@@ -226,7 +226,7 @@ class AppDelegate: NSObject,
         self.hiddenState = nil
 
         // First launch stuff
-        if (!applicationHasBecomeActive) {
+        if !applicationHasBecomeActive {
             applicationHasBecomeActive = true
 
             // Let's launch our first window. We only do this if we have no other windows. It
@@ -245,7 +245,7 @@ class AppDelegate: NSObject,
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         let windows = NSApplication.shared.windows
-        if (windows.isEmpty) { return .terminateNow }
+        if windows.isEmpty { return .terminateNow }
 
         // This probably isn't fully safe. The isEmpty check above is aspirational, it doesn't
         // quite work with SwiftUI because windows are retained on close. So instead we check
@@ -254,7 +254,7 @@ class AppDelegate: NSObject,
         // NOTE(mitchellh): I don't think we need this check at all anymore. I'm keeping it
         // here because I don't want to remove it in a patch release cycle but we should
         // target removing it soon.
-        if (self.quickController == nil && windows.allSatisfy { !$0.isVisible }) {
+        if self.quickController == nil && windows.allSatisfy({ !$0.isVisible }) {
             return .terminateNow
         }
 
@@ -266,24 +266,19 @@ class AppDelegate: NSObject,
             guard let keyword = AEKeyword("why?") else { break why }
 
             if let why = event.attributeDescriptor(forKeyword: keyword) {
-                switch (why.typeCodeValue) {
-                case kAEShutDown:
-                    fallthrough
+                switch why.typeCodeValue {
 
-                case kAERestart:
-                    fallthrough
+                    case kAEShutDown, kAERestart, kAEReallyLogOut:
+                        return .terminateNow
 
-                case kAEReallyLogOut:
-                    return .terminateNow
-
-                default:
-                    break
+                    default:
+                        break
                 }
             }
         }
 
         // If our app says we don't need to confirm, we can exit now.
-        if (!ghostty.needsConfirmQuit) { return .terminateNow }
+        if !ghostty.needsConfirmQuit { return .terminateNow }
 
         // We have some visible window. Show an app-wide modal to confirm quitting.
         let alert = NSAlert()
@@ -292,12 +287,12 @@ class AppDelegate: NSObject,
         alert.addButton(withTitle: "Close Ghostty")
         alert.addButton(withTitle: "Cancel")
         alert.alertStyle = .warning
-        switch (alert.runModal()) {
-        case .alertFirstButtonReturn:
-            return .terminateNow
+        switch alert.runModal() {
+            case .alertFirstButtonReturn:
+                return .terminateNow
 
-        default:
-            return .terminateCancel
+            default:
+                return .terminateCancel
         }
     }
 
@@ -330,7 +325,7 @@ class AppDelegate: NSObject,
         // Initialize the surface config which will be used to create the tab or window for the opened file.
         var config = Ghostty.SurfaceConfiguration()
 
-        if (isDirectory.boolValue) {
+        if isDirectory.boolValue {
             // When opening a directory, create a new tab in the main window with that as the working directory.
             // If no windows exist, a new one will be created.
             config.workingDirectory = filename
@@ -434,11 +429,11 @@ class AppDelegate: NSObject,
     /// events without any terminal windows open.
     private func localEventHandler(_ event: NSEvent) -> NSEvent? {
         return switch event.type {
-        case .keyDown:
-            localEventKeyDown(event)
+            case .keyDown:
+                localEventKeyDown(event)
 
-        default:
-            event
+            default:
+                event
         }
     }
 
@@ -449,23 +444,26 @@ class AppDelegate: NSObject,
 
         // If this event as-is would result in a key binding then we send it.
         if let app = ghostty.app,
-           ghostty_app_key_is_binding(
-            app,
-            event.ghosttyKeyEvent(GHOSTTY_ACTION_PRESS)) {
+            ghostty_app_key_is_binding(
+                app,
+                event.ghosttyKeyEvent(GHOSTTY_ACTION_PRESS))
+        {
             // If the key was handled by Ghostty we stop the event chain. If
             // the key wasn't handled then we let it fall through and continue
             // processing. This is important because some bindings may have no
             // affect at this scope.
-            if (ghostty_app_key(
+            if ghostty_app_key(
                 app,
-                event.ghosttyKeyEvent(GHOSTTY_ACTION_PRESS))) {
+                event.ghosttyKeyEvent(GHOSTTY_ACTION_PRESS))
+            {
                 return nil
             }
         }
 
         // If this event would be handled by our menu then we do nothing.
         if let mainMenu = NSApp.mainMenu,
-           mainMenu.performKeyEquivalent(with: event) {
+            mainMenu.performKeyEquivalent(with: event)
+        {
             return nil
         }
 
@@ -476,7 +474,7 @@ class AppDelegate: NSObject,
         guard let ghostty = self.ghostty.app else { return event }
 
         // Build our event input and call ghostty
-        if (ghostty_app_key(ghostty, event.ghosttyKeyEvent(GHOSTTY_ACTION_PRESS))) {
+        if ghostty_app_key(ghostty, event.ghosttyKeyEvent(GHOSTTY_ACTION_PRESS)) {
             // The key was used so we want to stop it from going to our Mac app
             Ghostty.logger.debug("local key event handled event=\(event)")
             return nil
@@ -487,7 +485,7 @@ class AppDelegate: NSObject,
 
     @objc private func quickTerminalDidChangeVisibility(_ notification: Notification) {
         guard let quickController = notification.object as? QuickTerminalController else { return }
-        self.menuQuickTerminal?.state = if (quickController.visible) { .on } else { .off }
+        self.menuQuickTerminal?.state = if quickController.visible { .on } else { .off }
     }
 
     @objc private func ghosttyConfigDidChange(_ notification: Notification) {
@@ -495,9 +493,11 @@ class AppDelegate: NSObject,
         guard notification.object == nil else { return }
 
         // Get our managed configuration object out
-        guard let config = notification.userInfo?[
-            Notification.Name.GhosttyConfigChangeKey
-        ] as? Ghostty.Config else { return }
+        guard
+            let config = notification.userInfo?[
+                Notification.Name.GhosttyConfigChangeKey
+            ] as? Ghostty.Config
+        else { return }
 
         ghosttyConfigDidChange(config: config)
     }
@@ -509,11 +509,11 @@ class AppDelegate: NSObject,
         // Depending on the "window-save-state" setting we have to set the NSQuitAlwaysKeepsWindows
         // configuration. This is the only way to carefully control whether macOS invokes the
         // state restoration system.
-        switch (config.windowSaveState) {
-        case "never": UserDefaults.standard.setValue(false, forKey: "NSQuitAlwaysKeepsWindows")
-        case "always": UserDefaults.standard.setValue(true, forKey: "NSQuitAlwaysKeepsWindows")
-        case "default": fallthrough
-        default: UserDefaults.standard.removeObject(forKey: "NSQuitAlwaysKeepsWindows")
+        switch config.windowSaveState {
+            case "never": UserDefaults.standard.setValue(false, forKey: "NSQuitAlwaysKeepsWindows")
+            case "always": UserDefaults.standard.setValue(true, forKey: "NSQuitAlwaysKeepsWindows")
+            case "default": fallthrough
+            default: UserDefaults.standard.removeObject(forKey: "NSQuitAlwaysKeepsWindows")
         }
 
         // Sync our auto-update settings. If SUEnableAutomaticChecks (in our Info.plist) is
@@ -540,27 +540,27 @@ class AppDelegate: NSObject,
         DispatchQueue.main.async { self.syncAppearance(config: config) }
 
         // Decide whether to hide/unhide app from dock and app switcher
-        switch (config.macosHidden) {
-        case .never:
-            NSApp.setActivationPolicy(.regular)
+        switch config.macosHidden {
+            case .never:
+                NSApp.setActivationPolicy(.regular)
 
-        case .always:
-            NSApp.setActivationPolicy(.accessory)
+            case .always:
+                NSApp.setActivationPolicy(.accessory)
         }
 
         // If we have configuration errors, we need to show them.
         let c = ConfigurationErrorsController.sharedInstance
         c.errors = config.errors
-        if (c.errors.count > 0) {
-            if (c.window == nil || !c.window!.isVisible) {
+        if c.errors.count > 0 {
+            if c.window == nil || !c.window!.isVisible {
                 c.showWindow(self)
             }
         }
 
         // We need to handle our global event tap depending on if there are global
         // events that we care about in Ghostty.
-        if (ghostty_app_has_global_keybinds(ghostty.app!)) {
-            if (timeSinceLaunch > 5) {
+        if ghostty_app_has_global_keybinds(ghostty.app!) {
+            if timeSinceLaunch > 5 {
                 // If the process has been running for awhile we enable right away
                 // because no windows are likely to pop up.
                 GlobalEventTap.shared.enable()
@@ -576,44 +576,46 @@ class AppDelegate: NSObject,
             GlobalEventTap.shared.disable()
         }
 
-        switch (config.macosIcon) {
-        case .official:
-            self.appIcon = nil
-            break
+        switch config.macosIcon {
+            case .official:
+                self.appIcon = nil
+                break
 
-        case .blueprint:
-            self.appIcon = NSImage(named: "BlueprintImage")!
+            case .blueprint:
+                self.appIcon = NSImage(named: "BlueprintImage")!
 
-        case .chalkboard:
-            self.appIcon = NSImage(named: "ChalkboardImage")!
+            case .chalkboard:
+                self.appIcon = NSImage(named: "ChalkboardImage")!
 
-        case .glass:
-            self.appIcon = NSImage(named: "GlassImage")!
+            case .glass:
+                self.appIcon = NSImage(named: "GlassImage")!
 
-        case .holographic:
-            self.appIcon = NSImage(named: "HolographicImage")!
+            case .holographic:
+                self.appIcon = NSImage(named: "HolographicImage")!
 
-        case .microchip:
-            self.appIcon = NSImage(named: "MicrochipImage")!
+            case .microchip:
+                self.appIcon = NSImage(named: "MicrochipImage")!
 
-        case .paper:
-            self.appIcon = NSImage(named: "PaperImage")!
+            case .paper:
+                self.appIcon = NSImage(named: "PaperImage")!
 
-        case .retro:
-            self.appIcon = NSImage(named: "RetroImage")!
+            case .retro:
+                self.appIcon = NSImage(named: "RetroImage")!
 
-        case .xray:
-            self.appIcon = NSImage(named: "XrayImage")!
+            case .xray:
+                self.appIcon = NSImage(named: "XrayImage")!
 
-        case .customStyle:
-            guard let ghostColor = config.macosIconGhostColor else { break }
-            guard let screenColors = config.macosIconScreenColor else { break }
-            guard let icon = ColorizedGhosttyIcon(
-                screenColors: screenColors,
-                ghostColor: ghostColor,
-                frame: config.macosIconFrame
-            ).makeImage() else { break }
-            self.appIcon = icon
+            case .customStyle:
+                guard let ghostColor = config.macosIconGhostColor else { break }
+                guard let screenColors = config.macosIconScreenColor else { break }
+                guard
+                    let icon = ColorizedGhosttyIcon(
+                        screenColors: screenColors,
+                        ghostColor: ghostColor,
+                        frame: config.macosIconFrame
+                    ).makeImage()
+                else { break }
+                self.appIcon = icon
         }
     }
 
@@ -685,17 +687,17 @@ class AppDelegate: NSObject,
 
     func setSecureInput(_ mode: Ghostty.SetSecureInput) {
         let input = SecureInput.shared
-        switch (mode) {
-        case .on:
-            input.global = true
+        switch mode {
+            case .on:
+                input.global = true
 
-        case .off:
-            input.global = false
+            case .off:
+                input.global = false
 
-        case .toggle:
-            input.global.toggle()
+            case .toggle:
+                input.global.toggle()
         }
-        self.menuSecureInput?.state = if (input.global) { .on } else { .off }
+        self.menuSecureInput?.state = if input.global { .on } else { .off }
         UserDefaults.standard.set(input.global, forKey: "SecureInput")
     }
 
@@ -762,7 +764,8 @@ class AppDelegate: NSObject,
             // Toggle visibility doesn't do anything if the focused window is native
             // fullscreen. This is only relevant if Ghostty is active.
             guard let keyWindow = NSApp.keyWindow,
-                  !keyWindow.styleMask.contains(.fullScreen) else { return }
+                !keyWindow.styleMask.contains(.fullScreen)
+            else { return }
 
             // Keep track of our hidden state to restore properly
             self.hiddenState = .init()
@@ -779,12 +782,12 @@ class AppDelegate: NSObject,
         hiddenState?.restore()
         hiddenState = nil
     }
-    
+
     @IBAction func bringAllToFront(_ sender: Any) {
         if !NSApp.isActive {
             NSApp.activate(ignoringOtherApps: true)
         }
-        
+
         NSApplication.shared.arrangeInFront(sender)
     }
 
@@ -813,19 +816,19 @@ class AppDelegate: NSObject,
         init() {
             // We need to know the key window so that we can bring focus back to the
             // right window if it was hidden.
-            self.keyWindow = if let keyWindow = NSApp.keyWindow {
-                .init(keyWindow)
-            } else {
-                nil
-            }
+            self.keyWindow =
+                if let keyWindow = NSApp.keyWindow {
+                    .init(keyWindow)
+                } else {
+                    nil
+                }
 
             // We need to keep track of the windows that were visible because we only
             // want to bring back these windows if we remove the toggle.
             //
             // We also ignore fullscreen windows because they don't hide anyways.
             self.hiddenWindows = NSApp.windows.filter {
-                $0.isVisible &&
-                !$0.styleMask.contains(.fullScreen)
+                $0.isVisible && !$0.styleMask.contains(.fullScreen)
             }.map { Weak($0) }
         }
 

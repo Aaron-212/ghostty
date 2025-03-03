@@ -1,8 +1,8 @@
+import Carbon
 import Cocoa
 import CoreGraphics
-import Carbon
-import OSLog
 import GhosttyKit
+import OSLog
 
 // Manages the event tap to monitor global events, currently only used for
 // global keybindings.
@@ -33,7 +33,7 @@ class GlobalEventTap {
     // If enabling fails due to permissions, this will start a timer to retry since
     // accessibility permissions take affect immediately.
     func enable() {
-        if (eventTap != nil) {
+        if eventTap != nil {
             // Already enabled
             return
         }
@@ -44,7 +44,7 @@ class GlobalEventTap {
         }
 
         // Try to enable the event tap immediately. If this succeeds then we're done!
-        if (tryEnable()) {
+        if tryEnable() {
             return
         }
 
@@ -77,17 +77,19 @@ class GlobalEventTap {
         // The events we care about
         let eventMask = [
             CGEventType.keyDown
-        ].reduce(CGEventMask(0), { $0 | (1 << $1.rawValue)})
+        ].reduce(CGEventMask(0), { $0 | (1 << $1.rawValue) })
 
         // Try to create it
-        guard let eventTap = CGEvent.tapCreate(
+        guard
+            let eventTap = CGEvent.tapCreate(
                 tap: .cgSessionEventTap,
                 place: .headInsertEventTap,
                 options: .defaultTap,
                 eventsOfInterest: eventMask,
                 callback: cgEventFlagsChangedHandler(proxy:type:cgEvent:userInfo:),
                 userInfo: nil
-        ) else {
+            )
+        else {
             // Return false if creation failed. This is usually because we don't have
             // Accessibility permissions but can probably be other reasons I don't
             // know about.
@@ -147,7 +149,7 @@ fileprivate func cgEventFlagsChangedHandler(
     key_ev.keycode = UInt32(event.keyCode)
     key_ev.text = nil
     key_ev.composing = false
-    if (ghostty_app_key(ghostty, key_ev)) {
+    if ghostty_app_key(ghostty, key_ev) {
         GlobalEventTap.logger.info("global key event handled event=\(event)")
         return nil
     }

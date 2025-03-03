@@ -1,6 +1,6 @@
 import Cocoa
 
-/// This helps manage the stateful nature of NSCursor hiding and unhiding. 
+/// This helps manage the stateful nature of NSCursor hiding and unhiding.
 class Cursor {
     private static var counter: UInt = 0
 
@@ -19,7 +19,7 @@ class Cursor {
         // won't go negative.
         NSCursor.unhide()
 
-        if (counter > 0) {
+        if counter > 0 {
             counter -= 1
             return true
         }

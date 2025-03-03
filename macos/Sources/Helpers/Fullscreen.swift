@@ -13,17 +13,17 @@ enum FullscreenMode {
     /// mode.
     func style(for window: NSWindow) -> FullscreenStyle? {
         switch self {
-        case .native:
-            return NativeFullscreen(window)
+            case .native:
+                return NativeFullscreen(window)
 
-        case .nonNative:
-            return NonNativeFullscreen(window)
+            case .nonNative:
+                return NonNativeFullscreen(window)
 
-        case  .nonNativeVisibleMenu:
-            return NonNativeFullscreenVisibleMenu(window)
+            case .nonNativeVisibleMenu:
+                return NonNativeFullscreenVisibleMenu(window)
 
-        case .nonNativePaddedNotch:
-            return NonNativeFullscreenPaddedNotch(window)
+            case .nonNativePaddedNotch:
+                return NonNativeFullscreenPaddedNotch(window)
         }
     }
 }
@@ -175,12 +175,12 @@ class NonNativeFullscreen: FullscreenBase, FullscreenStyle {
         // We must hide the dock FIRST then hide the menu:
         // If you specify autoHideMenuBar, it must be accompanied by either hideDock or autoHideDock.
         // https://developer.apple.com/documentation/appkit/nsapplication/presentationoptions-swift.struct
-        if (savedState.dock) {
+        if savedState.dock {
             hideDock()
         }
 
         // Hide the menu if requested
-        if (properties.hideMenu) {
+        if properties.hideMenu {
             hideMenu()
         }
 
@@ -233,7 +233,8 @@ class NonNativeFullscreen: FullscreenBase, FullscreenStyle {
         // This is a hack that I want to remove from this but for now, we need to
         // fix up the titlebar tabs here before we do everything below.
         if let window = window as? TerminalWindow,
-           window.titlebarTabs {
+            window.titlebarTabs
+        {
             window.titlebarTabs = true
         }
 
@@ -241,8 +242,9 @@ class NonNativeFullscreen: FullscreenBase, FullscreenStyle {
         // we re-add it. We have to do this because our process of doing non-native
         // fullscreen removes the window from the tab group.
         if let tabGroup = savedState.tabGroup,
-           let tabIndex = savedState.tabGroupIndex,
-            !tabGroup.windows.isEmpty {
+            let tabIndex = savedState.tabGroupIndex,
+            !tabGroup.windows.isEmpty
+        {
             if tabIndex == 0 {
                 // We were previously the first tab. Add it before ("below")
                 // the first window in the tab group currently.
@@ -273,7 +275,7 @@ class NonNativeFullscreen: FullscreenBase, FullscreenStyle {
         // calculate this ourselves.
         var frame = screen.frame
 
-        if (!properties.hideMenu) {
+        if !properties.hideMenu {
             // We need to subtract the menu height since we're still showing it.
             frame.size.height -= NSApp.mainMenu?.menuBarHeight ?? 0
 
@@ -283,7 +285,7 @@ class NonNativeFullscreen: FullscreenBase, FullscreenStyle {
             // put an #available check, but it was in a bug fix release so I think
             // if a bug is reported to Ghostty we can just advise the user to
             // update.
-        } else if (properties.paddedNotch) {
+        } else if properties.paddedNotch {
             // We are hiding the menu, we may need to avoid the notch.
             frame.size.height -= screen.safeAreaInsets.top
         }
@@ -299,7 +301,8 @@ class NonNativeFullscreen: FullscreenBase, FullscreenStyle {
 
         // This should always be true due to how we register but just be sure
         guard let object = notification.object as? NSWindow,
-              object == window else { return }
+            object == window
+        else { return }
 
         // Our screens must have changed
         guard savedState.screenID != window.screen?.displayID else { return }

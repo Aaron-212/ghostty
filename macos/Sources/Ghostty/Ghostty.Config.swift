@@ -1,5 +1,5 @@
-import SwiftUI
 import GhosttyKit
+import SwiftUI
 
 extension Ghostty {
     /// Maps to a `ghostty_config_t` and the various operations on that.
@@ -22,7 +22,7 @@ extension Ghostty {
         var errors: [String] {
             guard let cfg = self.config else { return [] }
 
-            var diags: [String] = [];
+            var diags: [String] = []
             let diagsCount = ghostty_config_diagnostics_count(cfg)
             for i in 0..<diagsCount {
                 let diag = ghostty_config_get_diagnostic(cfg, UInt32(i))
@@ -58,17 +58,17 @@ extension Ghostty {
             // Load our configuration from files, CLI args, and then any referenced files.
             // We only do this on macOS because other Apple platforms do not have the
             // same filesystem concept.
-#if os(macOS)
-            ghostty_config_load_default_files(cfg);
+            #if os(macOS)
+            ghostty_config_load_default_files(cfg)
 
             // We only load CLI args when not running in Xcode because in Xcode we
             // pass some special parameters to control the debugger.
             if !isRunningInXcode() {
-                ghostty_config_load_cli_args(cfg);
+                ghostty_config_load_cli_args(cfg)
             }
 
-            ghostty_config_load_recursive_files(cfg);
-#endif
+            ghostty_config_load_recursive_files(cfg)
+            #endif
 
             // TODO: we'd probably do some config loading here... for now we'd
             // have to do this synchronously. When we support config updating we can do
@@ -82,7 +82,7 @@ extension Ghostty {
             let diagsCount = ghostty_config_diagnostics_count(cfg)
             if diagsCount > 0 {
                 logger.warning("config error: \(diagsCount) configuration errors on reload")
-                var diags: [String] = [];
+                var diags: [String] = []
                 for i in 0..<diagsCount {
                     let diag = ghostty_config_get_diagnostic(cfg, UInt32(i))
                     let message = String(cString: diag.message)
@@ -94,7 +94,7 @@ extension Ghostty {
             return cfg
         }
 
-#if os(macOS)
+        #if os(macOS)
         // MARK: - Keybindings
 
         /// Return the key equivalent for the given action. The action is the name of the action
@@ -108,7 +108,7 @@ extension Ghostty {
             let trigger = ghostty_config_trigger(cfg, action, UInt(action.count))
             return Ghostty.keyEquivalent(for: trigger)
         }
-#endif
+        #endif
 
         // MARK: - Configuration Values
 
@@ -118,7 +118,7 @@ extension Ghostty {
 
         var initialWindow: Bool {
             guard let config = self.config else { return true }
-            var v = true;
+            var v = true
             let key = "initial-window"
             _ = ghostty_config_get(config, &v, key, UInt(key.count))
             return v
@@ -126,7 +126,7 @@ extension Ghostty {
 
         var shouldQuitAfterLastWindowClosed: Bool {
             guard let config = self.config else { return true }
-            var v = false;
+            var v = false
             let key = "quit-after-last-window-closed"
             _ = ghostty_config_get(config, &v, key, UInt(key.count))
             return v
@@ -147,7 +147,7 @@ extension Ghostty {
             let key = "window-position-x"
             return ghostty_config_get(config, &v, key, UInt(key.count)) ? v : nil
         }
-        
+
         var windowPositionY: Int16? {
             guard let config = self.config else { return nil }
             var v: Int16 = 0
@@ -210,16 +210,16 @@ extension Ghostty {
             guard let ptr = v else { return defaultValue }
             let str = String(cString: ptr)
             return switch str {
-            case "false":
+                case "false":
                     .native
-            case "true":
+                case "true":
                     .nonNative
-            case "visible-menu":
+                case "visible-menu":
                     .nonNativeVisibleMenu
-            case "padded-notch":
+                case "padded-notch":
                     .nonNativePaddedNotch
-            default:
-                defaultValue
+                default:
+                    defaultValue
             }
         }
         #endif
@@ -256,7 +256,7 @@ extension Ghostty {
 
         var macosWindowShadow: Bool {
             guard let config = self.config else { return false }
-            var v = false;
+            var v = false
             let key = "macos-window-shadow"
             _ = ghostty_config_get(config, &v, key, UInt(key.count))
             return v
@@ -312,25 +312,25 @@ extension Ghostty {
             return MacHidden(rawValue: str) ?? .never
         }
 
-        var focusFollowsMouse : Bool {
+        var focusFollowsMouse: Bool {
             guard let config = self.config else { return false }
-            var v = false;
+            var v = false
             let key = "focus-follows-mouse"
             _ = ghostty_config_get(config, &v, key, UInt(key.count))
             return v
         }
 
         var backgroundColor: Color {
-            var color: ghostty_config_color_s = .init();
+            var color: ghostty_config_color_s = .init()
             let bg_key = "background"
-            if (!ghostty_config_get(config, &color, bg_key, UInt(bg_key.count))) {
-#if os(macOS)
+            if !ghostty_config_get(config, &color, bg_key, UInt(bg_key.count)) {
+                #if os(macOS)
                 return Color(NSColor.windowBackgroundColor)
-#elseif os(iOS)
+                #elseif os(iOS)
                 return Color(UIColor.systemBackground)
-#else
-#error("unsupported")
-#endif
+                #else
+                #error("unsupported")
+                #endif
             }
 
             return .init(
@@ -345,7 +345,7 @@ extension Ghostty {
             var v: Double = 1
             let key = "background-opacity"
             _ = ghostty_config_get(config, &v, key, UInt(key.count))
-            return v;
+            return v
         }
 
         var backgroundBlurRadius: Int {
@@ -353,7 +353,7 @@ extension Ghostty {
             var v: Int = 0
             let key = "background-blur"
             _ = ghostty_config_get(config, &v, key, UInt(key.count))
-            return v;
+            return v
         }
 
         var unfocusedSplitOpacity: Double {
@@ -367,11 +367,11 @@ extension Ghostty {
         var unfocusedSplitFill: Color {
             guard let config = self.config else { return .white }
 
-            var color: ghostty_config_color_s = .init();
+            var color: ghostty_config_color_s = .init()
             let key = "unfocused-split-fill"
-            if (!ghostty_config_get(config, &color, key, UInt(key.count))) {
+            if !ghostty_config_get(config, &color, key, UInt(key.count)) {
                 let bg_key = "background"
-                _ = ghostty_config_get(config, &color, bg_key, UInt(bg_key.count));
+                _ = ghostty_config_get(config, &color, bg_key, UInt(bg_key.count))
             }
 
             return .init(
@@ -388,9 +388,9 @@ extension Ghostty {
 
             guard let config = self.config else { return Color(newColor) }
 
-            var color: ghostty_config_color_s = .init();
+            var color: ghostty_config_color_s = .init()
             let key = "split-divider-color"
-            if (!ghostty_config_get(config, &color, key, UInt(key.count))) {
+            if !ghostty_config_get(config, &color, key, UInt(key.count)) {
                 return Color(newColor)
             }
 
@@ -475,7 +475,7 @@ extension Ghostty {
             var v: UInt = 0
             let key = "resize-overlay-duration"
             _ = ghostty_config_get(config, &v, key, UInt(key.count))
-            return v;
+            return v
         }
 
         var autoUpdate: AutoUpdate? {
@@ -501,7 +501,7 @@ extension Ghostty {
 
         var autoSecureInput: Bool {
             guard let config = self.config else { return true }
-            var v = false;
+            var v = false
             let key = "macos-auto-secure-input"
             _ = ghostty_config_get(config, &v, key, UInt(key.count))
             return v
@@ -509,7 +509,7 @@ extension Ghostty {
 
         var secureInputIndication: Bool {
             guard let config = self.config else { return true }
-            var v = false;
+            var v = false
             let key = "macos-secure-input-indication"
             _ = ghostty_config_get(config, &v, key, UInt(key.count))
             return v
@@ -517,7 +517,7 @@ extension Ghostty {
 
         var maximize: Bool {
             guard let config = self.config else { return true }
-            var v = false;
+            var v = false
             let key = "maximize"
             _ = ghostty_config_get(config, &v, key, UInt(key.count))
             return v
@@ -528,24 +528,24 @@ extension Ghostty {
 // MARK: Configuration Enums
 
 extension Ghostty.Config {
-    enum AutoUpdate : String {
+    enum AutoUpdate: String {
         case off
         case check
         case download
     }
 
-    enum MacHidden : String {
+    enum MacHidden: String {
         case never
         case always
     }
 
-    enum ResizeOverlay : String {
+    enum ResizeOverlay: String {
         case always
         case never
         case after_first = "after-first"
     }
 
-    enum ResizeOverlayPosition : String {
+    enum ResizeOverlayPosition: String {
         case center
         case top_left = "top-left"
         case top_center = "top-center"
@@ -555,30 +555,30 @@ extension Ghostty.Config {
         case bottom_right = "bottom-right"
 
         func top() -> Bool {
-            switch (self) {
-            case .top_left, .top_center, .top_right: return true;
-            default: return false;
+            switch self {
+                case .top_left, .top_center, .top_right: return true
+                default: return false
             }
         }
 
         func bottom() -> Bool {
-            switch (self) {
-            case .bottom_left, .bottom_center, .bottom_right: return true;
-            default: return false;
+            switch self {
+                case .bottom_left, .bottom_center, .bottom_right: return true
+                default: return false
             }
         }
 
         func left() -> Bool {
-            switch (self) {
-            case .top_left, .bottom_left: return true;
-            default: return false;
+            switch self {
+                case .top_left, .bottom_left: return true
+                default: return false
             }
         }
 
         func right() -> Bool {
-            switch (self) {
-            case .top_right, .bottom_right: return true;
-            default: return false;
+            switch self {
+                case .top_right, .bottom_right: return true
+                default: return false
             }
         }
     }
@@ -591,8 +591,8 @@ extension Ghostty.Config {
 
         func enabled() -> Bool {
             switch self {
-            case .client, .server, .auto: return true
-            case .none: return false
+                case .client, .server, .auto: return true
+                case .none: return false
             }
         }
     }

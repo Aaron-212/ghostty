@@ -1,5 +1,5 @@
-import Foundation
 import AppKit
+import Foundation
 
 class ServiceProvider: NSObject {
     static private let errorNoString = NSString(string: "Could not load any text from the clipboard.")
@@ -56,12 +56,12 @@ class ServiceProvider: NSObject {
             var config = Ghostty.SurfaceConfiguration()
             config.workingDirectory = path
 
-            switch (target) {
-            case .window:
-                terminalManager.newWindow(withBaseConfig: config)
+            switch target {
+                case .window:
+                    terminalManager.newWindow(withBaseConfig: config)
 
-            case .tab:
-                terminalManager.newTab(withBaseConfig: config)
+                case .tab:
+                    terminalManager.newTab(withBaseConfig: config)
             }
         }
 

@@ -1,12 +1,12 @@
-import Foundation
 import Cocoa
+import Foundation
 
 enum QuickTerminalSpaceBehavior {
     case remain
     case move
 
     init?(fromGhosttyConfig string: String) {
-        switch (string) {
+        switch string {
             case "move":
                 self = .move
 
@@ -21,10 +21,10 @@ enum QuickTerminalSpaceBehavior {
     var collectionBehavior: NSWindow.CollectionBehavior {
         let commonBehavior: [NSWindow.CollectionBehavior] = [
             .ignoresCycle,
-            .fullScreenAuxiliary
+            .fullScreenAuxiliary,
         ]
 
-        switch (self) {
+        switch self {
             case .move:
                 // We want this to move the window to the active space.
                 return NSWindow.CollectionBehavior([.canJoinAllSpaces] + commonBehavior)

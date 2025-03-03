@@ -1,7 +1,7 @@
-import Foundation
 import Cocoa
-import SwiftUI
+import Foundation
 import GhosttyKit
+import SwiftUI
 
 // This is a Apple's private function that we need to call to get the active space.
 @_silgen_name("CGSGetActiveSpace")
@@ -33,10 +33,11 @@ class QuickTerminalController: BaseTerminalController {
     /// The configuration derived from the Ghostty config so we don't need to rely on references.
     private var derivedConfig: DerivedConfig
 
-    init(_ ghostty: Ghostty.App,
-         position: QuickTerminalPosition = .top,
-         baseConfig base: Ghostty.SurfaceConfiguration? = nil,
-         surfaceTree tree: Ghostty.SplitNode? = nil
+    init(
+        _ ghostty: Ghostty.App,
+        position: QuickTerminalPosition = .top,
+        baseConfig base: Ghostty.SurfaceConfiguration? = nil,
+        surfaceTree tree: Ghostty.SplitNode? = nil
     ) {
         self.position = position
         self.derivedConfig = DerivedConfig(ghostty.config)
@@ -100,11 +101,12 @@ class QuickTerminalController: BaseTerminalController {
         position.setLoaded(window)
 
         // Setup our content
-        window.contentView = NSHostingView(rootView: TerminalView(
-            ghostty: self.ghostty,
-            viewModel: self,
-            delegate: self
-        ))
+        window.contentView = NSHostingView(
+            rootView: TerminalView(
+                ghostty: self.ghostty,
+                viewModel: self,
+                delegate: self
+            ))
 
         // Animate the window in
         animateIn()
@@ -149,25 +151,25 @@ class QuickTerminalController: BaseTerminalController {
 
         if derivedConfig.quickTerminalAutoHide {
             switch derivedConfig.quickTerminalSpaceBehavior {
-            case .remain:
-                // If we lose focus on the active space, then we can animate out
-                animateOut()
-
-            case .move:
-                let currentActiveSpace = CGSGetActiveSpace(CGSMainConnectionID())
-                if previousActiveSpace == currentActiveSpace {
-                    // We haven't moved spaces. We lost focus to another app on the
-                    // current space. Animate out.
+                case .remain:
+                    // If we lose focus on the active space, then we can animate out
                     animateOut()
-                } else {
-                    // We've moved to a different space. Bring the quick terminal back
-                    // into view.
-                    DispatchQueue.main.async {
-                        self.window?.makeKeyAndOrderFront(nil)
-                    }
 
-                    self.previousActiveSpace = currentActiveSpace
-                }
+                case .move:
+                    let currentActiveSpace = CGSGetActiveSpace(CGSMainConnectionID())
+                    if previousActiveSpace == currentActiveSpace {
+                        // We haven't moved spaces. We lost focus to another app on the
+                        // current space. Animate out.
+                        animateOut()
+                    } else {
+                        // We've moved to a different space. Bring the quick terminal back
+                        // into view.
+                        DispatchQueue.main.async {
+                            self.window?.makeKeyAndOrderFront(nil)
+                        }
+
+                        self.previousActiveSpace = currentActiveSpace
+                    }
             }
         }
     }
@@ -185,7 +187,7 @@ class QuickTerminalController: BaseTerminalController {
         super.surfaceTreeDidChange(from: from, to: to)
 
         // If our surface tree is nil then we animate the window out.
-        if (to == nil) {
+        if to == nil {
             animateOut()
         }
     }
@@ -193,7 +195,7 @@ class QuickTerminalController: BaseTerminalController {
     // MARK: Methods
 
     func toggle() {
-        if (visible) {
+        if visible {
             animateOut()
         } else {
             animateIn()
@@ -217,7 +219,7 @@ class QuickTerminalController: BaseTerminalController {
         // we want to store it so we can restore state later.
         if !NSApp.isActive {
             if let previousApp = NSWorkspace.shared.frontmostApplication,
-               previousApp.bundleIdentifier != Bundle.main.bundleIdentifier
+                previousApp.bundleIdentifier != Bundle.main.bundleIdentifier
             {
                 self.previousApp = previousApp
             }
@@ -232,7 +234,7 @@ class QuickTerminalController: BaseTerminalController {
         // If our surface tree is nil then we initialize a new terminal. The surface
         // tree can be nil if for example we run "eixt" in the terminal and force
         // animate out.
-        if (surfaceTree == nil) {
+        if surfaceTree == nil {
             let leaf: Ghostty.SplitNode.Leaf = .init(ghostty.app!, baseConfig: nil)
             surfaceTree = .leaf(leaf)
             focusedSurface = leaf.surface
@@ -274,7 +276,7 @@ class QuickTerminalController: BaseTerminalController {
         // If our dock position would conflict with our target location then
         // we autohide the dock.
         if position.conflictsWithDock(on: screen) {
-            if (hiddenDock == nil) {
+            if hiddenDock == nil {
                 hiddenDock = .init()
             }
 
@@ -287,54 +289,56 @@ class QuickTerminalController: BaseTerminalController {
 
         // Run the animation that moves our window into the proper place and makes
         // it visible.
-        NSAnimationContext.runAnimationGroup({ context in
-            context.duration = derivedConfig.quickTerminalAnimationDuration
-            context.timingFunction = .init(name: .easeIn)
-            position.setFinal(in: window.animator(), on: screen)
-        }, completionHandler: {
-            // There is a very minor delay here so waiting at least an event loop tick
-            // keeps us safe from the view not being on the window.
-            DispatchQueue.main.async {
-                // If we canceled our animation clean up some state.
-                guard self.visible else {
-                    self.hiddenDock = nil
-                    return
-                }
+        NSAnimationContext.runAnimationGroup(
+            { context in
+                context.duration = derivedConfig.quickTerminalAnimationDuration
+                context.timingFunction = .init(name: .easeIn)
+                position.setFinal(in: window.animator(), on: screen)
+            },
+            completionHandler: {
+                // There is a very minor delay here so waiting at least an event loop tick
+                // keeps us safe from the view not being on the window.
+                DispatchQueue.main.async {
+                    // If we canceled our animation clean up some state.
+                    guard self.visible else {
+                        self.hiddenDock = nil
+                        return
+                    }
 
-                // After animating in, we reset the window level to a value that
-                // is above other windows but not as high as popUpMenu. This allows
-                // things like IME dropdowns to appear properly.
-                window.level = .floating
+                    // After animating in, we reset the window level to a value that
+                    // is above other windows but not as high as popUpMenu. This allows
+                    // things like IME dropdowns to appear properly.
+                    window.level = .floating
 
-                // Now that the window is visible, sync our appearance. This function
-                // requires the window is visible.
-                self.syncAppearance()
+                    // Now that the window is visible, sync our appearance. This function
+                    // requires the window is visible.
+                    self.syncAppearance()
 
-                // Once our animation is done, we must grab focus since we can't grab
-                // focus of a non-visible window.
-                self.makeWindowKey(window)
+                    // Once our animation is done, we must grab focus since we can't grab
+                    // focus of a non-visible window.
+                    self.makeWindowKey(window)
 
-                // If our application is not active, then we grab focus. Its important
-                // we do this AFTER our window is animated in and focused because
-                // otherwise macOS will bring forward another window.
-                if !NSApp.isActive {
-                    NSApp.activate(ignoringOtherApps: true)
+                    // If our application is not active, then we grab focus. Its important
+                    // we do this AFTER our window is animated in and focused because
+                    // otherwise macOS will bring forward another window.
+                    if !NSApp.isActive {
+                        NSApp.activate(ignoringOtherApps: true)
 
-                    // This works around a really funky bug where if the terminal is
-                    // shown on a screen that has no other Ghostty windows, it takes
-                    // a few (variable) event loop ticks until we can actually focus it.
-                    // https://github.com/ghostty-org/ghostty/issues/2409
-                    //
-                    // We wait one event loop tick to try it because under the happy
-                    // path (we have windows on this screen) it takes one event loop
-                    // tick for window.isKeyWindow to return true.
-                    DispatchQueue.main.async {
-                        guard !window.isKeyWindow else { return }
-                        self.makeWindowKey(window, retries: 10)
+                        // This works around a really funky bug where if the terminal is
+                        // shown on a screen that has no other Ghostty windows, it takes
+                        // a few (variable) event loop ticks until we can actually focus it.
+                        // https://github.com/ghostty-org/ghostty/issues/2409
+                        //
+                        // We wait one event loop tick to try it because under the happy
+                        // path (we have windows on this screen) it takes one event loop
+                        // tick for window.isKeyWindow to return true.
+                        DispatchQueue.main.async {
+                            guard !window.isKeyWindow else { return }
+                            self.makeWindowKey(window, retries: 10)
+                        }
                     }
                 }
-            }
-        })
+            })
     }
 
     /// Attempt to make a window key, supporting retries if necessary. The retries will be attempted
@@ -405,15 +409,17 @@ class QuickTerminalController: BaseTerminalController {
         // and lets us render off screen.
         window.level = .popUpMenu
 
-        NSAnimationContext.runAnimationGroup({ context in
-            context.duration = derivedConfig.quickTerminalAnimationDuration
-            context.timingFunction = .init(name: .easeIn)
-            position.setInitial(in: window.animator(), on: screen)
-        }, completionHandler: {
-            // This causes the window to be removed from the screen list and macOS
-            // handles what should be focused next.
-            window.orderOut(self)
-        })
+        NSAnimationContext.runAnimationGroup(
+            { context in
+                context.duration = derivedConfig.quickTerminalAnimationDuration
+                context.timingFunction = .init(name: .easeIn)
+                position.setInitial(in: window.animator(), on: screen)
+            },
+            completionHandler: {
+                // This causes the window to be removed from the screen list and macOS
+                // handles what should be focused next.
+                window.orderOut(self)
+            })
     }
 
     private func syncAppearance() {
@@ -427,7 +433,7 @@ class QuickTerminalController: BaseTerminalController {
         guard window.isVisible else { return }
 
         // If we have window transparency then set it transparent. Otherwise set it opaque.
-        if (self.derivedConfig.backgroundOpacity < 1) {
+        if self.derivedConfig.backgroundOpacity < 1 {
             window.isOpaque = false
 
             // This is weird, but we don't use ".clear" because this creates a look that
@@ -496,9 +502,11 @@ class QuickTerminalController: BaseTerminalController {
         guard notification.object == nil else { return }
 
         // Get our managed configuration object out
-        guard let config = notification.userInfo?[
-            Notification.Name.GhosttyConfigChangeKey
-        ] as? Ghostty.Config else { return }
+        guard
+            let config = notification.userInfo?[
+                Notification.Name.GhosttyConfigChangeKey
+            ] as? Ghostty.Config
+        else { return }
 
         // Update our derived config
         self.derivedConfig = DerivedConfig(config)

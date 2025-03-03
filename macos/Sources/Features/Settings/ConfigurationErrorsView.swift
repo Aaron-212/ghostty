@@ -16,12 +16,14 @@ struct ConfigurationErrorsView<ViewModel: ConfigurationErrorsViewModel>: View {
                     .padding()
                     .frame(alignment: .center)
 
-                Text("""
+                Text(
+                    """
                     ^[\(model.errors.count) error(s) were](inflect: true) found while loading the configuration. \
                     Please review the errors below and reload your configuration or ignore the erroneous lines.
-                    """)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
+                    """
+                )
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding()
             }
 
             GeometryReader { geo in

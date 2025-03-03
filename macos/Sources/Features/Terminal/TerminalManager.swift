@@ -1,7 +1,7 @@
 import Cocoa
-import SwiftUI
-import GhosttyKit
 import Combine
+import GhosttyKit
+import SwiftUI
 
 /// Manages a set of terminal windows. This is effectively an array of TerminalControllers.
 /// This abstraction helps manage tabs and multi-window scenarios.
@@ -28,7 +28,7 @@ class TerminalManager {
     /// then an arbitrary window will be chosen.
     private var mainWindow: Window? {
         for window in windows {
-            if (window.controller.window?.isMainWindow ?? false) {
+            if window.controller.window?.isMainWindow ?? false {
                 return window
             }
         }
@@ -77,21 +77,22 @@ class TerminalManager {
         // If the previous focused window was native fullscreen, the new window also
         // becomes native fullscreen.
         if let parent = focusedSurface?.window,
-            parent.styleMask.contains(.fullScreen) {
+            parent.styleMask.contains(.fullScreen)
+        {
             window.toggleFullScreen(nil)
         } else if derivedConfig.windowFullscreen {
-            switch (derivedConfig.windowFullscreenMode) {
-            case .native:
-                // Native has to be done immediately so that our stylemask contains
-                // fullscreen for the logic later in this method.
-                c.toggleFullscreen(mode: .native)
+            switch derivedConfig.windowFullscreenMode {
+                case .native:
+                    // Native has to be done immediately so that our stylemask contains
+                    // fullscreen for the logic later in this method.
+                    c.toggleFullscreen(mode: .native)
 
-            case .nonNative, .nonNativeVisibleMenu, .nonNativePaddedNotch:
-                // If we're non-native then we have to do it on a later loop
-                // so that the content view is setup.
-                DispatchQueue.main.async {
-                    c.toggleFullscreen(mode: self.derivedConfig.windowFullscreenMode)
-                }
+                case .nonNative, .nonNativeVisibleMenu, .nonNativePaddedNotch:
+                    // If we're non-native then we have to do it on a later loop
+                    // so that the content view is setup.
+                    DispatchQueue.main.async {
+                        c.toggleFullscreen(mode: self.derivedConfig.windowFullscreenMode)
+                    }
             }
         }
 
@@ -103,7 +104,7 @@ class TerminalManager {
         // that Cocoa is doing that we need to be after.
         DispatchQueue.main.async {
             // Only cascade if we aren't fullscreen.
-            if (!window.styleMask.contains(.fullScreen)) {
+            if !window.styleMask.contains(.fullScreen) {
                 Self.lastCascadePoint = window.cascadeTopLeft(from: Self.lastCascadePoint)
             }
 
@@ -131,11 +132,13 @@ class TerminalManager {
         // If our parent is in non-native fullscreen, then new tabs do not work.
         // See: https://github.com/mitchellh/ghostty/issues/392
         if let controller = parent.windowController as? TerminalController,
-           let fullscreenStyle = controller.fullscreenStyle,
-           fullscreenStyle.isFullscreen && !fullscreenStyle.supportsTabs {
+            let fullscreenStyle = controller.fullscreenStyle,
+            fullscreenStyle.isFullscreen && !fullscreenStyle.supportsTabs
+        {
             let alert = NSAlert()
             alert.messageText = "Cannot Create New Tab"
-            alert.informativeText = "New tabs are unsupported while in non-native fullscreen. Exit fullscreen and try again."
+            alert.informativeText =
+                "New tabs are unsupported while in non-native fullscreen. Exit fullscreen and try again."
             alert.addButton(withTitle: "OK")
             alert.alertStyle = .warning
             alert.beginSheetModal(for: parent)
@@ -148,7 +151,7 @@ class TerminalManager {
 
         // If the parent is miniaturized, then macOS exhibits really strange behaviors
         // so we have to bring it back out.
-        if (parent.isMiniaturized) { parent.deminiaturize(self) }
+        if parent.isMiniaturized { parent.deminiaturize(self) }
 
         // If our parent tab group already has this window, macOS added it and
         // we need to remove it so we can set the correct order in the next line.
@@ -168,20 +171,20 @@ class TerminalManager {
 
         // If we have the "hidden" titlebar style we want to create new
         // tabs as windows instead, so just skip adding it to the parent.
-        if (derivedConfig.macosTitlebarStyle != "hidden") {
+        if derivedConfig.macosTitlebarStyle != "hidden" {
             // Add the window to the tab group and show it.
             switch derivedConfig.windowNewTabPosition {
-            case "end":
-                // If we already have a tab group and we want the new tab to open at the end,
-                // then we use the last window in the tab group as the parent.
-                if let last = parent.tabGroup?.windows.last {
-                    last.addTabbedWindow(window, ordered: .above)
-                } else {
-                    fallthrough
-                }
-            case "current": fallthrough
-            default:
-                parent.addTabbedWindow(window, ordered: .above)
+                case "end":
+                    // If we already have a tab group and we want the new tab to open at the end,
+                    // then we use the last window in the tab group as the parent.
+                    if let last = parent.tabGroup?.windows.last {
+                        last.addTabbedWindow(window, ordered: .above)
+                    } else {
+                        fallthrough
+                    }
+                case "current": fallthrough
+                default:
+                    parent.addTabbedWindow(window, ordered: .above)
 
             }
         }
@@ -196,8 +199,10 @@ class TerminalManager {
     }
 
     /// Creates a window controller, adds it to our managed list, and returns it.
-    func createWindow(withBaseConfig base: Ghostty.SurfaceConfiguration? = nil,
-                      withSurfaceTree tree: Ghostty.SplitNode? = nil) -> TerminalController {
+    func createWindow(
+        withBaseConfig base: Ghostty.SurfaceConfiguration? = nil,
+        withSurfaceTree tree: Ghostty.SplitNode? = nil
+    ) -> TerminalController {
         // Initialize our controller to load the window
         let c = TerminalController(ghostty, withBaseConfig: base, withSurfaceTree: tree)
 
@@ -212,10 +217,11 @@ class TerminalManager {
         }
 
         // Keep track of every window we manage
-        windows.append(Window(
-            controller: c,
-            closePublisher: pubClose
-        ))
+        windows.append(
+            Window(
+                controller: c,
+                closePublisher: pubClose
+            ))
 
         return c
     }
@@ -268,13 +274,13 @@ class TerminalManager {
     func closeAllWindows() {
         var needsConfirm: Bool = false
         for w in self.windows {
-            if (w.controller.surfaceTree?.needsConfirmQuit() ?? false) {
+            if w.controller.surfaceTree?.needsConfirmQuit() ?? false {
                 needsConfirm = true
                 break
             }
         }
 
-        if (!needsConfirm) {
+        if !needsConfirm {
             for w in self.windows {
                 w.controller.close()
             }
@@ -301,13 +307,15 @@ class TerminalManager {
         alert.addButton(withTitle: "Close All Windows")
         alert.addButton(withTitle: "Cancel")
         alert.alertStyle = .warning
-        alert.beginSheetModal(for: alertWindow, completionHandler: { response in
-            if (response == .alertFirstButtonReturn) {
-                for w in self.windows {
-                    w.controller.close()
+        alert.beginSheetModal(
+            for: alertWindow,
+            completionHandler: { response in
+                if response == .alertFirstButtonReturn {
+                    for w in self.windows {
+                        w.controller.close()
+                    }
                 }
-            }
-        })
+            })
     }
 
     /// Relabels all the tabs with the proper keyboard shortcut.
@@ -341,9 +349,11 @@ class TerminalManager {
         guard notification.object == nil else { return }
 
         // Get our managed configuration object out
-        guard let config = notification.userInfo?[
-            Notification.Name.GhosttyConfigChangeKey
-        ] as? Ghostty.Config else { return }
+        guard
+            let config = notification.userInfo?[
+                Notification.Name.GhosttyConfigChangeKey
+            ] as? Ghostty.Config
+        else { return }
 
         // Update our derived config
         self.derivedConfig = DerivedConfig(config)

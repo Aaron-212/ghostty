@@ -11,15 +11,17 @@ extension NSImage {
         let size = images.first!.size
 
         // Create a bitmap context manually
-        guard let bitmapContext = CGContext(
-            data: nil,
-            width: Int(size.width),
-            height: Int(size.height),
-            bitsPerComponent: 8,
-            bytesPerRow: 0,
-            space: CGColorSpaceCreateDeviceRGB(),
-            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-        ) else { return nil }
+        guard
+            let bitmapContext = CGContext(
+                data: nil,
+                width: Int(size.width),
+                height: Int(size.height),
+                bitsPerComponent: 8,
+                bytesPerRow: 0,
+                space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+            )
+        else { return nil }
 
         // Clear the context
         bitmapContext.setFillColor(.clear)
@@ -27,11 +29,13 @@ extension NSImage {
 
         // Draw each image with its corresponding blend mode
         for (index, image) in images.enumerated() {
-            guard let cgImage = image.cgImage(
-                forProposedRect: nil,
-                context: nil,
-                hints: nil
-            ) else { return nil }
+            guard
+                let cgImage = image.cgImage(
+                    forProposedRect: nil,
+                    context: nil,
+                    hints: nil
+                )
+            else { return nil }
 
             let blendMode = blendingModes[index]
             bitmapContext.setBlendMode(blendMode)

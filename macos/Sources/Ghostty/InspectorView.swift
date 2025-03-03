@@ -1,7 +1,7 @@
 import Foundation
+import GhosttyKit
 import MetalKit
 import SwiftUI
-import GhosttyKit
 
 extension Ghostty {
     /// InspectableSurface is a type of Surface view that allows an inspector to be attached.
@@ -23,24 +23,27 @@ extension Ghostty {
             let pubInspector = center.publisher(for: Notification.didControlInspector, object: surfaceView)
 
             ZStack {
-                if (!surfaceView.inspectorVisible) {
+                if !surfaceView.inspectorVisible {
                     SurfaceWrapper(surfaceView: surfaceView, isSplit: isSplit)
                 } else {
-                    SplitView(.vertical, $split, dividerColor: ghostty.config.splitDividerColor, left: {
-                        SurfaceWrapper(surfaceView: surfaceView, isSplit: isSplit)
-                    }, right: {
-                        InspectorViewRepresentable(surfaceView: surfaceView)
-                            .focused($inspectorFocus)
-                            .focusedValue(\.ghosttySurfaceTitle, surfaceView.title)
-                            .focusedValue(\.ghosttySurfaceView, surfaceView)
-                    })
+                    SplitView(
+                        .vertical, $split, dividerColor: ghostty.config.splitDividerColor,
+                        left: {
+                            SurfaceWrapper(surfaceView: surfaceView, isSplit: isSplit)
+                        },
+                        right: {
+                            InspectorViewRepresentable(surfaceView: surfaceView)
+                                .focused($inspectorFocus)
+                                .focusedValue(\.ghosttySurfaceTitle, surfaceView.title)
+                                .focusedValue(\.ghosttySurfaceView, surfaceView)
+                        })
                 }
             }
             .onReceive(pubInspector) { onControlInspector($0) }
             .onChange(of: surfaceView.inspectorVisible) { inspectorVisible in
                 // When we show the inspector, we want to focus on the inspector.
                 // When we hide the inspector, we want to move focus back to the surface.
-                if (inspectorVisible) {
+                if inspectorVisible {
                     // We need to delay this until SwiftUI shows the inspector.
                     DispatchQueue.main.async {
                         _ = surfaceView.resignFirstResponder()
@@ -57,18 +60,18 @@ extension Ghostty {
             guard let modeAny = notification.userInfo?["mode"] else { return }
             guard let mode = modeAny as? ghostty_action_inspector_e else { return }
 
-            switch (mode) {
-            case GHOSTTY_INSPECTOR_TOGGLE:
-                surfaceView.inspectorVisible = !surfaceView.inspectorVisible
+            switch mode {
+                case GHOSTTY_INSPECTOR_TOGGLE:
+                    surfaceView.inspectorVisible = !surfaceView.inspectorVisible
 
-            case GHOSTTY_INSPECTOR_SHOW:
-                surfaceView.inspectorVisible = true
+                case GHOSTTY_INSPECTOR_SHOW:
+                    surfaceView.inspectorVisible = true
 
-            case GHOSTTY_INSPECTOR_HIDE:
-                surfaceView.inspectorVisible = false
+                case GHOSTTY_INSPECTOR_HIDE:
+                    surfaceView.inspectorVisible = false
 
-            default:
-                return
+                default:
+                    return
             }
         }
     }
@@ -109,8 +112,9 @@ extension Ghostty {
         override init(frame: CGRect, device: MTLDevice?) {
             // Initialize our Metal primitives
             guard
-              let device = device ?? MTLCreateSystemDefaultDevice(),
-              let commandQueue = device.makeCommandQueue() else {
+                let device = device ?? MTLCreateSystemDefaultDevice(),
+                let commandQueue = device.makeCommandQueue()
+            else {
                 fatalError("GPU not available")
             }
 
@@ -180,7 +184,7 @@ extension Ghostty {
 
         override func becomeFirstResponder() -> Bool {
             let result = super.becomeFirstResponder()
-            if (result) {
+            if result {
                 if let inspector = self.inspector {
                     ghostty_inspector_set_focus(inspector, true)
                 }
@@ -190,7 +194,7 @@ extension Ghostty {
 
         override func resignFirstResponder() -> Bool {
             let result = super.resignFirstResponder()
-            if (result) {
+            if result {
                 if let inspector = self.inspector {
                     ghostty_inspector_set_focus(inspector, false)
                 }
@@ -203,20 +207,21 @@ extension Ghostty {
             trackingAreas.forEach { removeTrackingArea($0) }
 
             // This tracking area is across the entire frame to notify us of mouse movements.
-            addTrackingArea(NSTrackingArea(
-                rect: frame,
-                options: [
-                    .mouseMoved,
+            addTrackingArea(
+                NSTrackingArea(
+                    rect: frame,
+                    options: [
+                        .mouseMoved,
 
-                    // Only send mouse events that happen in our visible (not obscured) rect
-                    .inVisibleRect,
+                        // Only send mouse events that happen in our visible (not obscured) rect
+                        .inVisibleRect,
 
-                    // We want active always because we want to still send mouse reports
-                    // even if we're not focused or key.
-                    .activeAlways,
-                ],
-                owner: self,
-                userInfo: nil))
+                        // We want active always because we want to still send mouse reports
+                        // even if we're not focused or key.
+                        .activeAlways,
+                    ],
+                    owner: self,
+                    userInfo: nil))
         }
 
         override func viewDidChangeBackingProperties() {
@@ -273,29 +278,29 @@ extension Ghostty {
                 mods = 1
 
                 // We do a 2x speed multiplier. This is subjective, it "feels" better to me.
-                x *= 2;
-                y *= 2;
+                x *= 2
+                y *= 2
 
                 // TODO(mitchellh): do we have to scale the x/y here by window scale factor?
             }
 
             // Determine our momentum value
             var momentum: ghostty_input_mouse_momentum_e = GHOSTTY_MOUSE_MOMENTUM_NONE
-            switch (event.momentumPhase) {
-            case .began:
-                momentum = GHOSTTY_MOUSE_MOMENTUM_BEGAN
-            case .stationary:
-                momentum = GHOSTTY_MOUSE_MOMENTUM_STATIONARY
-            case .changed:
-                momentum = GHOSTTY_MOUSE_MOMENTUM_CHANGED
-            case .ended:
-                momentum = GHOSTTY_MOUSE_MOMENTUM_ENDED
-            case .cancelled:
-                momentum = GHOSTTY_MOUSE_MOMENTUM_CANCELLED
-            case .mayBegin:
-                momentum = GHOSTTY_MOUSE_MOMENTUM_MAY_BEGIN
-            default:
-                break
+            switch event.momentumPhase {
+                case .began:
+                    momentum = GHOSTTY_MOUSE_MOMENTUM_BEGAN
+                case .stationary:
+                    momentum = GHOSTTY_MOUSE_MOMENTUM_STATIONARY
+                case .changed:
+                    momentum = GHOSTTY_MOUSE_MOMENTUM_CHANGED
+                case .ended:
+                    momentum = GHOSTTY_MOUSE_MOMENTUM_ENDED
+                case .cancelled:
+                    momentum = GHOSTTY_MOUSE_MOMENTUM_CANCELLED
+                case .mayBegin:
+                    momentum = GHOSTTY_MOUSE_MOMENTUM_MAY_BEGIN
+                default:
+                    break
             }
 
             // Pack our momentum value into the mods bitmask
@@ -315,14 +320,14 @@ extension Ghostty {
         }
 
         override func flagsChanged(with event: NSEvent) {
-            let mod: UInt32;
-            switch (event.keyCode) {
-            case 0x39: mod = GHOSTTY_MODS_CAPS.rawValue
-            case 0x38, 0x3C: mod = GHOSTTY_MODS_SHIFT.rawValue
-            case 0x3B, 0x3E: mod = GHOSTTY_MODS_CTRL.rawValue
-            case 0x3A, 0x3D: mod = GHOSTTY_MODS_ALT.rawValue
-            case 0x37, 0x36: mod = GHOSTTY_MODS_SUPER.rawValue
-            default: return
+            let mod: UInt32
+            switch event.keyCode {
+                case 0x39: mod = GHOSTTY_MODS_CAPS.rawValue
+                case 0x38, 0x3C: mod = GHOSTTY_MODS_SHIFT.rawValue
+                case 0x3B, 0x3E: mod = GHOSTTY_MODS_CTRL.rawValue
+                case 0x3A, 0x3D: mod = GHOSTTY_MODS_ALT.rawValue
+                case 0x37, 0x36: mod = GHOSTTY_MODS_SUPER.rawValue
+                default: return
             }
 
             // The keyAction function will do this AGAIN below which sucks to repeat
@@ -331,7 +336,7 @@ extension Ghostty {
 
             // If the key that pressed this is active, its a press, else release
             var action = GHOSTTY_ACTION_RELEASE
-            if (mods.rawValue & mod != 0) { action = GHOSTTY_ACTION_PRESS }
+            if mods.rawValue & mod != 0 { action = GHOSTTY_ACTION_PRESS }
 
             keyAction(action, event: event)
         }
@@ -351,7 +356,7 @@ extension Ghostty {
 
         func markedRange() -> NSRange {
             guard markedText.length > 0 else { return NSRange() }
-            return NSRange(0...(markedText.length-1))
+            return NSRange(0...(markedText.length - 1))
         }
 
         func selectedRange() -> NSRange {
@@ -360,14 +365,14 @@ extension Ghostty {
 
         func setMarkedText(_ string: Any, selectedRange: NSRange, replacementRange: NSRange) {
             switch string {
-            case let v as NSAttributedString:
-                self.markedText = NSMutableAttributedString(attributedString: v)
+                case let v as NSAttributedString:
+                    self.markedText = NSMutableAttributedString(attributedString: v)
 
-            case let v as String:
-                self.markedText = NSMutableAttributedString(string: v)
+                case let v as String:
+                    self.markedText = NSMutableAttributedString(string: v)
 
-            default:
-                print("unknown marked text: \(string)")
+                default:
+                    print("unknown marked text: \(string)")
             }
         }
 
@@ -398,17 +403,17 @@ extension Ghostty {
 
             // We want the string view of the any value
             var chars = ""
-            switch (string) {
-            case let v as NSAttributedString:
-                chars = v.string
-            case let v as String:
-                chars = v
-            default:
-                return
+            switch string {
+                case let v as NSAttributedString:
+                    chars = v.string
+                case let v as String:
+                    chars = v
+                default:
+                    return
             }
 
             let len = chars.utf8CString.count
-            if (len == 0) { return }
+            if len == 0 { return }
 
             chars.withCString { ptr in
                 ghostty_inspector_text(inspector, ptr)
@@ -424,8 +429,9 @@ extension Ghostty {
 
         override func draw(_ dirtyRect: NSRect) {
             guard
-              let commandBuffer = self.commandQueue.makeCommandBuffer(),
-              let descriptor = self.currentRenderPassDescriptor else {
+                let commandBuffer = self.commandQueue.makeCommandBuffer(),
+                let descriptor = self.currentRenderPassDescriptor
+            else {
                 return
             }
 

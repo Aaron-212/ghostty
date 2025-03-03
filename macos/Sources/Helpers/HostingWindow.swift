@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct HostingWindowKey: EnvironmentKey {
-    typealias Value = () -> NSWindow? // needed for weak link
+    typealias Value = () -> NSWindow?  // needed for weak link
     static let defaultValue: Self.Value = { nil }
 }
 

@@ -1,6 +1,6 @@
 import Cocoa
-import SwiftUI
 import GhosttyKit
+import SwiftUI
 
 /// A base class for windows that can contain Ghostty windows. This base class implements
 /// the bare minimum functionality that every terminal window in Ghostty should implement.
@@ -26,11 +26,11 @@ import GhosttyKit
 /// The primary idea of all the behaviors we don't implement here are that subclasses may not
 /// want these behaviors.
 class BaseTerminalController: NSWindowController,
-                              NSWindowDelegate,
-                              TerminalViewDelegate,
-                              TerminalViewModel,
-                              ClipboardConfirmationViewDelegate,
-                              FullscreenDelegate
+    NSWindowDelegate,
+    TerminalViewDelegate,
+    TerminalViewModel,
+    ClipboardConfirmationViewDelegate,
+    FullscreenDelegate
 {
     /// The app instance that this terminal view will represent.
     let ghostty: Ghostty.App
@@ -77,9 +77,10 @@ class BaseTerminalController: NSWindowController,
         fatalError("init(coder:) is not supported for this view")
     }
 
-    init(_ ghostty: Ghostty.App,
-         baseConfig base: Ghostty.SurfaceConfiguration? = nil,
-         surfaceTree tree: Ghostty.SplitNode? = nil
+    init(
+        _ ghostty: Ghostty.App,
+        baseConfig base: Ghostty.SurfaceConfiguration? = nil,
+        surfaceTree tree: Ghostty.SplitNode? = nil
     ) {
         self.ghostty = ghostty
         self.derivedConfig = DerivedConfig(ghostty.config)
@@ -129,7 +130,7 @@ class BaseTerminalController: NSWindowController,
     func surfaceTreeDidChange(from: Ghostty.SplitNode?, to: Ghostty.SplitNode?) {
         // If our surface tree becomes nil then ensure all surfaces
         // in the old tree have closed.
-        if (to == nil) {
+        if to == nil {
             from?.close()
             focusedSurface = nil
         }
@@ -143,9 +144,8 @@ class BaseTerminalController: NSWindowController,
         for leaf in tree {
             // Our focus state requires that this window is key and our currently
             // focused surface is the surface in this leaf.
-            let focused: Bool = (window?.isKeyWindow ?? false) &&
-                focusedSurface != nil &&
-                leaf.surface == focusedSurface!
+            let focused: Bool =
+                (window?.isKeyWindow ?? false) && focusedSurface != nil && leaf.surface == focusedSurface!
             leaf.surface.focusDidChange(focused)
         }
     }
@@ -188,14 +188,14 @@ class BaseTerminalController: NSWindowController,
         // then we let it stay that way.
         x: if newFrame.origin.x < visibleFrame.origin.x {
             if let savedFrame, savedFrame.window.origin.x < savedFrame.screen.origin.x {
-                break x;
+                break x
             }
 
             newFrame.origin.x = visibleFrame.origin.x
         }
         y: if newFrame.origin.y < visibleFrame.origin.y {
             if let savedFrame, savedFrame.window.origin.y < savedFrame.screen.origin.y {
-                break y;
+                break y
             }
 
             newFrame.origin.y = visibleFrame.origin.y
@@ -209,12 +209,14 @@ class BaseTerminalController: NSWindowController,
         // We only care if the configuration is a global configuration, not a
         // surface-specific one.
         guard notification.object == nil else { return }
-        
+
         // Get our managed configuration object out
-        guard let config = notification.userInfo?[
-            Notification.Name.GhosttyConfigChangeKey
-        ] as? Ghostty.Config else { return }
-        
+        guard
+            let config = notification.userInfo?[
+                Notification.Name.GhosttyConfigChangeKey
+            ] as? Ghostty.Config
+        else { return }
+
         // Update our derived config
         self.derivedConfig = DerivedConfig(config)
     }
@@ -223,11 +225,11 @@ class BaseTerminalController: NSWindowController,
 
     private func localEventHandler(_ event: NSEvent) -> NSEvent? {
         return switch event.type {
-        case .flagsChanged:
-            localEventFlagsChanged(event)
+            case .flagsChanged:
+                localEventFlagsChanged(event)
 
-        default:
-            event
+            default:
+                event
         }
     }
 
@@ -264,11 +266,11 @@ class BaseTerminalController: NSWindowController,
 
     func titleDidChange(to: String) {
         guard let window else { return }
-        
+
         // Set the main window title
         window.title = to
     }
-    
+
     func pwdDidChange(to: URL?) {
         guard let window else { return }
 
@@ -357,8 +359,14 @@ class BaseTerminalController: NSWindowController,
 
         // Check whether we use non-native fullscreen
         guard let str = notification.userInfo?[Ghostty.Notification.ConfirmClipboardStrKey] as? String else { return }
-        guard let state = notification.userInfo?[Ghostty.Notification.ConfirmClipboardStateKey] as? UnsafeMutableRawPointer? else { return }
-        guard let request = notification.userInfo?[Ghostty.Notification.ConfirmClipboardRequestKey] as? Ghostty.ClipboardRequest else { return }
+        guard
+            let state = notification.userInfo?[Ghostty.Notification.ConfirmClipboardStateKey]
+                as? UnsafeMutableRawPointer?
+        else { return }
+        guard
+            let request = notification.userInfo?[Ghostty.Notification.ConfirmClipboardRequestKey]
+                as? Ghostty.ClipboardRequest
+        else { return }
 
         // If we already have a clipboard confirmation view up, we ignore this request.
         // This shouldn't be possible...
@@ -378,7 +386,8 @@ class BaseTerminalController: NSWindowController,
         window.beginSheet(self.clipboardConfirmation!.window!)
     }
 
-    func clipboardConfirmationComplete(_ action: ClipboardConfirmationView.Action, _ request: Ghostty.ClipboardRequest) {
+    func clipboardConfirmationComplete(_ action: ClipboardConfirmationView.Action, _ request: Ghostty.ClipboardRequest)
+    {
         // End our clipboard confirmation no matter what
         guard let cc = self.clipboardConfirmation else { return }
         self.clipboardConfirmation = nil
@@ -388,23 +397,23 @@ class BaseTerminalController: NSWindowController,
             window?.endSheet(ccWindow)
         }
 
-        switch (request) {
-        case let .osc_52_write(pasteboard):
-            guard case .confirm = action else { break }
-            let pb = pasteboard ?? NSPasteboard.general
-            pb.declareTypes([.string], owner: nil)
-            pb.setString(cc.contents, forType: .string)
-        case .osc_52_read, .paste:
-            let str: String
-            switch (action) {
-            case .cancel:
-                str = ""
+        switch request {
+            case let .osc_52_write(pasteboard):
+                guard case .confirm = action else { break }
+                let pb = pasteboard ?? NSPasteboard.general
+                pb.declareTypes([.string], owner: nil)
+                pb.setString(cc.contents, forType: .string)
+            case .osc_52_read, .paste:
+                let str: String
+                switch action {
+                    case .cancel:
+                        str = ""
 
-            case .confirm:
-                str = cc.contents
-            }
+                    case .confirm:
+                        str = cc.contents
+                }
 
-            Ghostty.App.completeClipboardRequest(cc.surface, data: str, state: cc.state, confirmed: true)
+                Ghostty.App.completeClipboardRequest(cc.surface, data: str, state: cc.state, confirmed: true)
         }
     }
 
@@ -438,27 +447,29 @@ class BaseTerminalController: NSWindowController,
         guard alert == nil else { return false }
 
         // If our surfaces don't require confirmation, close.
-        if (!node.needsConfirmQuit()) { return true }
+        if !node.needsConfirmQuit() { return true }
 
         // We require confirmation, so show an alert as long as we aren't already.
         let alert = NSAlert()
         alert.messageText = "Close Terminal?"
-        alert.informativeText = "The terminal still has a running process. If you close the " +
-        "terminal the process will be killed."
+        alert.informativeText =
+            "The terminal still has a running process. If you close the " + "terminal the process will be killed."
         alert.addButton(withTitle: "Close the Terminal")
         alert.addButton(withTitle: "Cancel")
         alert.alertStyle = .warning
-        alert.beginSheetModal(for: window, completionHandler: { response in
-            self.alert = nil
-            switch (response) {
-            case .alertFirstButtonReturn:
-                alert.window.orderOut(nil)
-                window.close()
+        alert.beginSheetModal(
+            for: window,
+            completionHandler: { response in
+                self.alert = nil
+                switch response {
+                    case .alertFirstButtonReturn:
+                        alert.window.orderOut(nil)
+                        window.close()
 
-            default:
-                break
-            }
-        })
+                    default:
+                        break
+                }
+            })
 
         self.alert = alert
 

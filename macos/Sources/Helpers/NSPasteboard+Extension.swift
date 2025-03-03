@@ -14,8 +14,10 @@ extension NSPasteboard {
     /// If all of the above fail, returns None.
     func getOpinionatedStringContents() -> String? {
         if let urls = readObjects(forClasses: [NSURL.self]) as? [URL],
-           urls.count > 0 {
-            return urls
+            urls.count > 0
+        {
+            return
+                urls
                 .map { $0.isFileURL ? Ghostty.Shell.escape($0.path) : $0.absoluteString }
                 .joined(separator: " ")
         }
@@ -25,15 +27,15 @@ extension NSPasteboard {
 
     /// The pasteboard for the Ghostty enum type.
     static func ghostty(_ clipboard: ghostty_clipboard_e) -> NSPasteboard? {
-        switch (clipboard) {
-        case GHOSTTY_CLIPBOARD_STANDARD:
-            return Self.general
+        switch clipboard {
+            case GHOSTTY_CLIPBOARD_STANDARD:
+                return Self.general
 
-        case GHOSTTY_CLIPBOARD_SELECTION:
-            return Self.ghosttySelection
+            case GHOSTTY_CLIPBOARD_SELECTION:
+                return Self.ghosttySelection
 
-        default:
-            return nil
+            default:
+                return nil
         }
     }
 }

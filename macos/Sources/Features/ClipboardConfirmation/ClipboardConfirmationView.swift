@@ -7,20 +7,20 @@ protocol ClipboardConfirmationViewDelegate: AnyObject {
 
 /// The SwiftUI view for showing a clipboard confirmation dialog.
 struct ClipboardConfirmationView: View {
-    enum Action : String {
+    enum Action: String {
         case cancel
         case confirm
 
         static func text(_ action: Action, _ reason: Ghostty.ClipboardRequest) -> String {
             switch (action, reason) {
-            case (.cancel, .paste):
-                return "Cancel"
-            case (.cancel, .osc_52_read), (.cancel, .osc_52_write):
-                return "Deny"
-            case (.confirm, .paste):
-                return "Paste"
-            case (.confirm, .osc_52_read), (.confirm, .osc_52_write):
-                return "Allow"
+                case (.cancel, .paste):
+                    return "Cancel"
+                case (.cancel, .osc_52_read), (.cancel, .osc_52_write):
+                    return "Deny"
+                case (.confirm, .paste):
+                    return "Paste"
+                case (.confirm, .osc_52_read), (.confirm, .osc_52_write):
+                    return "Allow"
             }
         }
     }
@@ -77,7 +77,7 @@ struct ClipboardConfirmationView: View {
             // If we didn't unhide anything, we just send an unhide to be safe.
             // I don't think the count can go negative on NSCursor so this handles
             // scenarios cursor is hidden outside of our own NSCursor usage.
-            if (cursorHiddenCount == 0) {
+            if cursorHiddenCount == 0 {
                 _ = Cursor.unhide()
             }
         }

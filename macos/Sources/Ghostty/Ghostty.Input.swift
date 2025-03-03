@@ -34,27 +34,27 @@ extension Ghostty {
     /// or keys.
     static func keyEquivalent(for trigger: ghostty_input_trigger_s) -> KeyEquivalent? {
         let equiv: String
-        switch (trigger.tag) {
-        case GHOSTTY_TRIGGER_TRANSLATED:
-            if let v = Ghostty.keyEquivalent(key: trigger.key.translated) {
-                equiv = v
-            } else {
+        switch trigger.tag {
+            case GHOSTTY_TRIGGER_TRANSLATED:
+                if let v = Ghostty.keyEquivalent(key: trigger.key.translated) {
+                    equiv = v
+                } else {
+                    return nil
+                }
+
+            case GHOSTTY_TRIGGER_PHYSICAL:
+                if let v = Ghostty.keyEquivalent(key: trigger.key.physical) {
+                    equiv = v
+                } else {
+                    return nil
+                }
+
+            case GHOSTTY_TRIGGER_UNICODE:
+                guard let scalar = UnicodeScalar(trigger.key.unicode) else { return nil }
+                equiv = String(scalar)
+
+            default:
                 return nil
-            }
-
-        case GHOSTTY_TRIGGER_PHYSICAL:
-            if let v = Ghostty.keyEquivalent(key: trigger.key.physical) {
-                equiv = v
-            } else {
-                return nil
-            }
-
-        case GHOSTTY_TRIGGER_UNICODE:
-            guard let scalar = UnicodeScalar(trigger.key.unicode) else { return nil }
-            equiv = String(scalar)
-
-        default:
-            return nil
         }
 
         return KeyEquivalent(
@@ -67,11 +67,11 @@ extension Ghostty {
 
     /// Returns the event modifier flags set for the Ghostty mods enum.
     static func eventModifierFlags(mods: ghostty_input_mods_e) -> NSEvent.ModifierFlags {
-        var flags = NSEvent.ModifierFlags(rawValue: 0);
-        if (mods.rawValue & GHOSTTY_MODS_SHIFT.rawValue != 0) { flags.insert(.shift) }
-        if (mods.rawValue & GHOSTTY_MODS_CTRL.rawValue != 0) { flags.insert(.control) }
-        if (mods.rawValue & GHOSTTY_MODS_ALT.rawValue != 0) { flags.insert(.option) }
-        if (mods.rawValue & GHOSTTY_MODS_SUPER.rawValue != 0) { flags.insert(.command) }
+        var flags = NSEvent.ModifierFlags(rawValue: 0)
+        if mods.rawValue & GHOSTTY_MODS_SHIFT.rawValue != 0 { flags.insert(.shift) }
+        if mods.rawValue & GHOSTTY_MODS_CTRL.rawValue != 0 { flags.insert(.control) }
+        if mods.rawValue & GHOSTTY_MODS_ALT.rawValue != 0 { flags.insert(.option) }
+        if mods.rawValue & GHOSTTY_MODS_SUPER.rawValue != 0 { flags.insert(.command) }
         return flags
     }
 
@@ -79,25 +79,25 @@ extension Ghostty {
     static func ghosttyMods(_ flags: NSEvent.ModifierFlags) -> ghostty_input_mods_e {
         var mods: UInt32 = GHOSTTY_MODS_NONE.rawValue
 
-        if (flags.contains(.shift)) { mods |= GHOSTTY_MODS_SHIFT.rawValue }
-        if (flags.contains(.control)) { mods |= GHOSTTY_MODS_CTRL.rawValue }
-        if (flags.contains(.option)) { mods |= GHOSTTY_MODS_ALT.rawValue }
-        if (flags.contains(.command)) { mods |= GHOSTTY_MODS_SUPER.rawValue }
-        if (flags.contains(.capsLock)) { mods |= GHOSTTY_MODS_CAPS.rawValue }
+        if flags.contains(.shift) { mods |= GHOSTTY_MODS_SHIFT.rawValue }
+        if flags.contains(.control) { mods |= GHOSTTY_MODS_CTRL.rawValue }
+        if flags.contains(.option) { mods |= GHOSTTY_MODS_ALT.rawValue }
+        if flags.contains(.command) { mods |= GHOSTTY_MODS_SUPER.rawValue }
+        if flags.contains(.capsLock) { mods |= GHOSTTY_MODS_CAPS.rawValue }
 
         // Handle sided input. We can't tell that both are pressed in the
         // Ghostty structure but thats okay -- we don't use that information.
         let rawFlags = flags.rawValue
-        if (rawFlags & UInt(NX_DEVICERSHIFTKEYMASK) != 0) { mods |= GHOSTTY_MODS_SHIFT_RIGHT.rawValue }
-        if (rawFlags & UInt(NX_DEVICERCTLKEYMASK) != 0) { mods |= GHOSTTY_MODS_CTRL_RIGHT.rawValue }
-        if (rawFlags & UInt(NX_DEVICERALTKEYMASK) != 0) { mods |= GHOSTTY_MODS_ALT_RIGHT.rawValue }
-        if (rawFlags & UInt(NX_DEVICERCMDKEYMASK) != 0) { mods |= GHOSTTY_MODS_SUPER_RIGHT.rawValue }
+        if rawFlags & UInt(NX_DEVICERSHIFTKEYMASK) != 0 { mods |= GHOSTTY_MODS_SHIFT_RIGHT.rawValue }
+        if rawFlags & UInt(NX_DEVICERCTLKEYMASK) != 0 { mods |= GHOSTTY_MODS_CTRL_RIGHT.rawValue }
+        if rawFlags & UInt(NX_DEVICERALTKEYMASK) != 0 { mods |= GHOSTTY_MODS_ALT_RIGHT.rawValue }
+        if rawFlags & UInt(NX_DEVICERCMDKEYMASK) != 0 { mods |= GHOSTTY_MODS_SUPER_RIGHT.rawValue }
 
         return ghostty_input_mods_e(mods)
     }
 
     /// A map from the Ghostty key enum to the keyEquivalent string for shortcuts.
-    static let keyToEquivalent: [ghostty_input_key_e : String] = [
+    static let keyToEquivalent: [ghostty_input_key_e: String] = [
         // 0-9
         GHOSTTY_KEY_ZERO: "0",
         GHOSTTY_KEY_ONE: "1",
@@ -196,7 +196,7 @@ extension Ghostty {
         GHOSTTY_KEY_F25: "\u{F71C}",
     ]
 
-    static let asciiToKey: [UInt8 : ghostty_input_key_e] = [
+    static let asciiToKey: [UInt8: ghostty_input_key_e] = [
         // 0-9
         0x30: GHOSTTY_KEY_ZERO,
         0x31: GHOSTTY_KEY_ONE,
@@ -281,7 +281,7 @@ extension Ghostty {
 
     // Mapping of event keyCode to ghostty input key values. This is cribbed from
     // glfw mostly since we started as a glfw-based app way back in the day!
-    static let keycodeToKey: [UInt16 : ghostty_input_key_e] = [
+    static let keycodeToKey: [UInt16: ghostty_input_key_e] = [
         0x1D: GHOSTTY_KEY_ZERO,
         0x12: GHOSTTY_KEY_ONE,
         0x13: GHOSTTY_KEY_TWO,
@@ -394,5 +394,5 @@ extension Ghostty {
         0x51: GHOSTTY_KEY_KP_EQUAL,
         0x43: GHOSTTY_KEY_KP_MULTIPLY,
         0x4E: GHOSTTY_KEY_KP_SUBTRACT,
-    ];
+    ]
 }

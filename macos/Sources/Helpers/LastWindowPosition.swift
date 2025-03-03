@@ -14,7 +14,8 @@ class LastWindowPosition {
 
     func restore(_ window: NSWindow) -> Bool {
         guard let points = UserDefaults.standard.array(forKey: positionKey) as? [Double],
-              points.count == 2 else { return false }
+            points.count == 2
+        else { return false }
 
         let lastPosition = CGPoint(x: points[0], y: points[1])
 

@@ -1,5 +1,5 @@
-import SwiftUI
 import Combine
+import SwiftUI
 
 /// A split view shows a left and right (or top and bottom) view with a divider in the middle to do resizing.
 /// The terminlogy "left" and "right" is always used but for vertical splits "left" is "top" and "right" is "bottom".
@@ -48,12 +48,14 @@ struct SplitView<L: View, R: View>: View {
                 right
                     .frame(width: rightRect.size.width, height: rightRect.size.height)
                     .offset(x: rightRect.origin.x, y: rightRect.origin.y)
-                Divider(direction: direction,
-                        visibleSize: splitterVisibleSize,
-                        invisibleSize: splitterInvisibleSize,
-                        color: dividerColor)
-                    .position(splitterPoint)
-                    .gesture(dragGesture(geo.size, splitterPoint: splitterPoint))
+                Divider(
+                    direction: direction,
+                    visibleSize: splitterVisibleSize,
+                    invisibleSize: splitterInvisibleSize,
+                    color: dividerColor
+                )
+                .position(splitterPoint)
+                .gesture(dragGesture(geo.size, splitterPoint: splitterPoint))
             }
             .onReceive(resizePublisher) { value in
                 resize(for: geo.size, amount: value)
@@ -63,11 +65,13 @@ struct SplitView<L: View, R: View>: View {
 
     /// Initialize a split view. This view isn't programmatically resizable; it can only be resized
     /// by manually dragging the divider.
-    init(_ direction: SplitViewDirection,
-         _ split: Binding<CGFloat>,
-         dividerColor: Color,
-         @ViewBuilder left: (() -> L),
-         @ViewBuilder right: (() -> R)) {
+    init(
+        _ direction: SplitViewDirection,
+        _ split: Binding<CGFloat>,
+        dividerColor: Color,
+        @ViewBuilder left: (() -> L),
+        @ViewBuilder right: (() -> R)
+    ) {
         self.init(
             direction,
             split,
@@ -100,11 +104,11 @@ struct SplitView<L: View, R: View>: View {
 
     private func resize(for size: CGSize, amount: Double) {
         let dim: CGFloat
-        switch (direction) {
-        case .horizontal:
-            dim = size.width
-        case .vertical:
-            dim = size.height
+        switch direction {
+            case .horizontal:
+                dim = size.width
+            case .vertical:
+                dim = size.height
         }
 
         let pos = split * dim
@@ -115,14 +119,14 @@ struct SplitView<L: View, R: View>: View {
     private func dragGesture(_ size: CGSize, splitterPoint: CGPoint) -> some Gesture {
         return DragGesture()
             .onChanged { gesture in
-                switch (direction) {
-                case .horizontal:
-                    let new = min(max(minSize, gesture.location.x), size.width - minSize)
-                    split = new / size.width
+                switch direction {
+                    case .horizontal:
+                        let new = min(max(minSize, gesture.location.x), size.width - minSize)
+                        split = new / size.width
 
-                case .vertical:
-                    let new = min(max(minSize, gesture.location.y), size.height - minSize)
-                    split = new / size.height
+                    case .vertical:
+                        let new = min(max(minSize, gesture.location.y), size.height - minSize)
+                        split = new / size.height
                 }
             }
     }
@@ -131,16 +135,16 @@ struct SplitView<L: View, R: View>: View {
     private func leftRect(for size: CGSize) -> CGRect {
         // Initially the rect is the full size
         var result = CGRect(x: 0, y: 0, width: size.width, height: size.height)
-        switch (direction) {
-        case .horizontal:
-            result.size.width = result.size.width * split
-            result.size.width -= splitterVisibleSize / 2
-            result.size.width -= result.size.width.truncatingRemainder(dividingBy: self.resizeIncrements.width)
+        switch direction {
+            case .horizontal:
+                result.size.width = result.size.width * split
+                result.size.width -= splitterVisibleSize / 2
+                result.size.width -= result.size.width.truncatingRemainder(dividingBy: self.resizeIncrements.width)
 
-        case .vertical:
-            result.size.height = result.size.height * split
-            result.size.height -= splitterVisibleSize / 2
-            result.size.height -= result.size.height.truncatingRemainder(dividingBy: self.resizeIncrements.height)
+            case .vertical:
+                result.size.height = result.size.height * split
+                result.size.height -= splitterVisibleSize / 2
+                result.size.height -= result.size.height.truncatingRemainder(dividingBy: self.resizeIncrements.height)
         }
 
         return result
@@ -150,18 +154,18 @@ struct SplitView<L: View, R: View>: View {
     private func rightRect(for size: CGSize, leftRect: CGRect) -> CGRect {
         // Initially the rect is the full size
         var result = CGRect(x: 0, y: 0, width: size.width, height: size.height)
-        switch (direction) {
-        case .horizontal:
-            // For horizontal layouts we offset the starting X by the left rect
-            // and make the width fit the remaining space.
-            result.origin.x += leftRect.size.width
-            result.origin.x += splitterVisibleSize / 2
-            result.size.width -= result.origin.x
+        switch direction {
+            case .horizontal:
+                // For horizontal layouts we offset the starting X by the left rect
+                // and make the width fit the remaining space.
+                result.origin.x += leftRect.size.width
+                result.origin.x += splitterVisibleSize / 2
+                result.size.width -= result.origin.x
 
-        case .vertical:
-            result.origin.y += leftRect.size.height
-            result.origin.y += splitterVisibleSize / 2
-            result.size.height -= result.origin.y
+            case .vertical:
+                result.origin.y += leftRect.size.height
+                result.origin.y += splitterVisibleSize / 2
+                result.size.height -= result.origin.y
         }
 
         return result
@@ -169,12 +173,12 @@ struct SplitView<L: View, R: View>: View {
 
     /// Calculates the point at which the splitter should be rendered.
     private func splitterPoint(for size: CGSize, leftRect: CGRect) -> CGPoint {
-        switch (direction) {
-        case .horizontal:
-            return CGPoint(x: leftRect.size.width, y: size.height / 2)
+        switch direction {
+            case .horizontal:
+                return CGPoint(x: leftRect.size.width, y: size.height / 2)
 
-        case .vertical:
-            return CGPoint(x: size.width / 2, y: leftRect.size.height)
+            case .vertical:
+                return CGPoint(x: size.width / 2, y: leftRect.size.height)
         }
     }
 }

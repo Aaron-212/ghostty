@@ -29,16 +29,16 @@ extension NSView {
         return result
     }
 
-	/// Recursively finds and returns the first descendant view that has the given identifier.
-	func firstDescendant(withID id: String) -> NSView? {
-		for subview in subviews {
-			if subview.identifier == NSUserInterfaceItemIdentifier(id) {
-				return subview
-			} else if let found = subview.firstDescendant(withID: id) {
-				return found
-			}
-		}
+    /// Recursively finds and returns the first descendant view that has the given identifier.
+    func firstDescendant(withID id: String) -> NSView? {
+        for subview in subviews {
+            if subview.identifier == NSUserInterfaceItemIdentifier(id) {
+                return subview
+            } else if let found = subview.firstDescendant(withID: id) {
+                return found
+            }
+        }
 
-		return nil
-	}
+        return nil
+    }
 }

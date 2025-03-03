@@ -19,10 +19,11 @@ struct AboutView: View {
         let blendingMode: NSVisualEffectView.BlendingMode
         let isEmphasized: Bool
 
-        init(material: NSVisualEffectView.Material,
-             blendingMode: NSVisualEffectView.BlendingMode = .behindWindow,
-             isEmphasized: Bool = false)
-        {
+        init(
+            material: NSVisualEffectView.Material,
+            blendingMode: NSVisualEffectView.BlendingMode = .behindWindow,
+            isEmphasized: Bool = false
+        ) {
             self.material = material
             self.blendingMode = blendingMode
             self.isEmphasized = isEmphasized
@@ -71,7 +72,8 @@ struct AboutView: View {
                         PropertyRow(label: "Build", text: build)
                     }
                     if let commit, commit != "",
-                       let url = githubURL?.appendingPathComponent("/commits/\(commit)") {
+                        let url = githubURL?.appendingPathComponent("/commits/\(commit)")
+                    {
                         PropertyRow(label: "Commit", text: commit, url: url)
                     }
                 }

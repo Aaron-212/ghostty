@@ -9,45 +9,45 @@ extension SplitView {
         let color: Color
 
         private var visibleWidth: CGFloat? {
-            switch (direction) {
-            case .horizontal:
-                return visibleSize
-            case .vertical:
-                return nil
+            switch direction {
+                case .horizontal:
+                    return visibleSize
+                case .vertical:
+                    return nil
             }
         }
 
         private var visibleHeight: CGFloat? {
-            switch (direction) {
-            case .horizontal:
-                return nil
-            case .vertical:
-                return visibleSize
+            switch direction {
+                case .horizontal:
+                    return nil
+                case .vertical:
+                    return visibleSize
             }
         }
 
         private var invisibleWidth: CGFloat? {
-            switch (direction) {
-            case .horizontal:
-                return visibleSize + invisibleSize
-            case .vertical:
-                return nil
+            switch direction {
+                case .horizontal:
+                    return visibleSize + invisibleSize
+                case .vertical:
+                    return nil
             }
         }
 
         private var invisibleHeight: CGFloat? {
-            switch (direction) {
-            case .horizontal:
-                return nil
-            case .vertical:
-                return visibleSize + invisibleSize
+            switch direction {
+                case .horizontal:
+                    return nil
+                case .vertical:
+                    return visibleSize + invisibleSize
             }
         }
 
         private var pointerStyle: BackportPointerStyle {
-            return switch (direction) {
-            case .horizontal: .resizeLeftRight
-            case .vertical: .resizeUpDown
+            return switch direction {
+                case .horizontal: .resizeLeftRight
+                case .vertical: .resizeUpDown
             }
         }
 
@@ -55,7 +55,7 @@ extension SplitView {
             ZStack {
                 Color.clear
                     .frame(width: invisibleWidth, height: invisibleHeight)
-                    .contentShape(Rectangle()) // Makes it hit testable for pointerStyle
+                    .contentShape(Rectangle())  // Makes it hit testable for pointerStyle
                 Rectangle()
                     .fill(color)
                     .frame(width: visibleWidth, height: visibleHeight)
@@ -68,12 +68,12 @@ extension SplitView {
                     return
                 }
 
-                if (isHovered) {
-                    switch (direction) {
-                    case .horizontal:
-                        NSCursor.resizeLeftRight.push()
-                    case .vertical:
-                        NSCursor.resizeUpDown.push()
+                if isHovered {
+                    switch direction {
+                        case .horizontal:
+                            NSCursor.resizeLeftRight.push()
+                        case .vertical:
+                            NSCursor.resizeUpDown.push()
                     }
                 } else {
                     NSCursor.pop()
