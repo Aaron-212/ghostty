@@ -1,0 +1,17 @@
+{
+    "indentConditionalCompilationBlocks": false,
+    "indentSwitchCaseLabels": true,
+    "indentation": {
+        "spaces": 4
+    },
+    "lineLength": 120,
+    "maximumBlankLines": 2,
+    "multiElementCollectionTrailingCommas": true,
+    "spacesAroundRangeFormationOperators": false,
+    "spacesBeforeEndOfLineComments": 2,
+    "tabWidth": 4,
+    "fileScopedDeclarationPrivacy": {
+        "accessLevel": "fileprivate"
+    },
+    "version": 1
+}
