@@ -1059,7 +1059,9 @@ class BaseTerminalController: NSWindowController,
     }
 
     @IBAction func toggleCommandPalette(_ sender: Any?) {
-        commandPaletteIsShowing.toggle()
+        withAnimation(.spring(duration: 0.3, bounce: 0.3)) {
+            commandPaletteIsShowing.toggle()
+        }
     }
 
     @objc func resetTerminal(_ sender: Any) {
