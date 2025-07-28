@@ -174,8 +174,8 @@ fileprivate struct CommandPaletteQuery: View {
 
             TextField("Execute a command…", text: $query)
                 .padding()
-                .font(.system(size: 20))
-                .frame(height: 48)
+                .font(.system(size: 22, weight: .light))
+                .frame(height: 50)
                 .textFieldStyle(.plain)
                 .focused($isTextFieldFocused)
                 .onAppear {
