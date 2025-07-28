@@ -106,12 +106,6 @@ struct CommandPaletteView: View {
     }
 
     var body: some View {
-        let scheme: ColorScheme = if OSColor(backgroundColor).isLightColor {
-            .light
-        } else {
-            .dark
-        }
-
         Group {
             if #available(macOS 26.0, *) {
                 mainView
@@ -142,7 +136,7 @@ struct CommandPaletteView: View {
         .frame(maxWidth: 500)
         .shadow(radius: 32, x: 0, y: 12)
         .padding()
-        .environment(\.colorScheme, scheme)
+        .environment(\.colorScheme, OSColor(backgroundColor).isLightColor ? .light : .dark)
     }
 }
 
@@ -220,8 +214,8 @@ fileprivate struct CommandTable: View {
                                 isSelected: {
                                     if let selected = selectedIndex {
                                         return selected == index ||
-                                            (selected >= options.count &&
-                                                index == options.count - 1)
+                                        (selected >= options.count &&
+                                         index == options.count - 1)
                                     } else {
                                         return false
                                     }
