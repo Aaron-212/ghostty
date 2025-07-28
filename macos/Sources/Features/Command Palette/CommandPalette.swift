@@ -43,13 +43,7 @@ struct CommandPaletteView: View {
         }
     }
 
-    var body: some View {
-        let scheme: ColorScheme = if OSColor(backgroundColor).isLightColor {
-            .light
-        } else {
-            .dark
-        }
-
+    var mainView: some View {
         VStack(alignment: .leading, spacing: 0) {
             CommandPaletteQuery(query: $query) { event in
                 switch (event) {
@@ -64,15 +58,15 @@ struct CommandPaletteView: View {
                     if filteredOptions.isEmpty { break }
                     let current = selectedIndex ?? UInt(filteredOptions.count)
                     selectedIndex = (current == 0)
-                        ? UInt(filteredOptions.count - 1)
-                        : current - 1
+                    ? UInt(filteredOptions.count - 1)
+                    : current - 1
 
                 case .move(.down):
                     if filteredOptions.isEmpty { break }
                     let current = selectedIndex ?? UInt.max
                     selectedIndex = (current >= UInt(filteredOptions.count - 1))
-                        ? 0
-                        : current + 1
+                    ? 0
+                    : current + 1
 
                 case .move(_):
                     // Unknown, ignore
@@ -94,7 +88,12 @@ struct CommandPaletteView: View {
                 }
             }
 
-            Divider()
+            if #available(macOS 26.0, *) {
+                Divider()
+                    .padding(.horizontal)
+            } else {
+                Divider()
+            }
 
             CommandTable(
                 options: filteredOptions,
@@ -102,24 +101,45 @@ struct CommandPaletteView: View {
                 hoveredOptionID: $hoveredOptionID) { option in
                     isPresented = false
                     option.action()
+                }
+        }
+    }
+
+    var body: some View {
+        let scheme: ColorScheme = if OSColor(backgroundColor).isLightColor {
+            .light
+        } else {
+            .dark
+        }
+
+        Group {
+            if #available(macOS 26.0, *) {
+                mainView
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .glassEffect(
+                        .regular.tint(backgroundColor),
+                        in: RoundedRectangle(cornerRadius: 20)
+                    )
+            } else {
+                mainView
+                    .background(
+                        ZStack {
+                            Rectangle()
+                                .fill(.ultraThinMaterial)
+                            Rectangle()
+                                .fill(backgroundColor)
+                                .blendMode(.color)
+                        }
+                            .compositingGroup()
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color(nsColor: .tertiaryLabelColor).opacity(0.75))
+                    )
             }
         }
         .frame(maxWidth: 500)
-        .background(
-            ZStack {
-                Rectangle()
-                    .fill(.ultraThinMaterial)
-                Rectangle()
-                    .fill(backgroundColor)
-                    .blendMode(.color)
-            }
-                .compositingGroup()
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(Color(nsColor: .tertiaryLabelColor).opacity(0.75))
-        )
         .shadow(radius: 32, x: 0, y: 12)
         .padding()
         .environment(\.colorScheme, scheme)
@@ -160,7 +180,7 @@ fileprivate struct CommandPaletteQuery: View {
 
             TextField("Execute a command…", text: $query)
                 .padding()
-                .font(.system(size: 20, weight: .light))
+                .font(.system(size: 20))
                 .frame(height: 48)
                 .textFieldStyle(.plain)
                 .focused($isTextFieldFocused)
@@ -233,28 +253,38 @@ fileprivate struct CommandRow: View {
     @Binding var hoveredID: UUID?
     var action: () -> Void
 
+    var mainView: some View {
+        HStack {
+            Text(option.title)
+            Spacer()
+            if let symbols = option.symbols {
+                ShortcutSymbolsView(symbols: symbols)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(8)
+        .background(
+            isSelected
+            ? Color.accentColor.opacity(0.2)
+            : (hoveredID == option.id
+               ? Color.secondary.opacity(0.2)
+               : Color.clear)
+        )
+    }
+
     var body: some View {
         Button(action: action) {
-            HStack {
-                Text(option.title)
-                Spacer()
-                if let symbols = option.symbols {
-                    ShortcutSymbolsView(symbols: symbols)
-                        .foregroundStyle(.secondary)
-                }
+            if #available(macOS 26.0, *) {
+                mainView
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+            } else {
+                mainView
+                    .clipShape(RoundedRectangle(cornerRadius: 5))
             }
-            .padding(8)
-            .background(
-                isSelected
-                    ? Color.accentColor.opacity(0.2)
-                    : (hoveredID == option.id
-                       ? Color.secondary.opacity(0.2)
-                       : Color.clear)
-            )
-            .cornerRadius(5)
         }
         .help(option.description ?? "")
         .buttonStyle(.plain)
+        .contentShape(Rectangle())
         .onHover { hovering in
             hoveredID = hovering ? option.id : nil
         }
