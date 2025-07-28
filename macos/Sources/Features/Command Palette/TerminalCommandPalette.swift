@@ -1,5 +1,5 @@
-import SwiftUI
 import GhosttyKit
+import SwiftUI
 
 struct TerminalCommandPaletteView: View {
     /// The surface that this command palette represents.
@@ -33,39 +33,25 @@ struct TerminalCommandPaletteView: View {
         }
     }
 
-    var body: some View {
-        ZStack {
-            GeometryReader { geometry in
-                VStack {
-                    Spacer().frame(height: geometry.size.height * 0.05)
+    var mainView: some View {
+        GeometryReader { geometry in
+            VStack {
+                Spacer().frame(height: geometry.size.height * 0.05)
 
-                    ResponderChainInjector(responder: surfaceView)
-                        .frame(width: 0, height: 0)
+                ResponderChainInjector(responder: surfaceView)
+                    .frame(width: 0, height: 0)
 
-                    if isPresented {
-                        if #available(macOS 26.0, *) {
-                            CommandPaletteView(
-                                isPresented: $isPresented,
-                                backgroundColor: ghosttyConfig.backgroundColor,
-                                options: commandOptions
-                            )
-                            .transition(.blurReplace.combined(with: .scale(1.125)))
-                            .zIndex(1)  // Ensure it's on top
-                        } else {
-                            CommandPaletteView(
-                                isPresented: $isPresented,
-                                backgroundColor: ghosttyConfig.backgroundColor,
-                                options: commandOptions
-                            )
-                            .transition(.opacity)
-                            .zIndex(1)  // Ensure it's on top
-                        }
-                    }
+                CommandPaletteView(
+                    isPresented: $isPresented,
+                    backgroundColor: ghosttyConfig.backgroundColor,
+                    options: commandOptions
+                )
 
-                    Spacer()
-                }
-                .frame(width: geometry.size.width, height: geometry.size.height, alignment: .top)
+                .zIndex(1)  // Ensure it's on top
+
+                Spacer()
             }
+            .frame(width: geometry.size.width, height: geometry.size.height, alignment: .top)
         }
         .onChange(of: isPresented) { newValue in
             // When the command palette disappears we need to send focus back to the
@@ -77,6 +63,18 @@ struct TerminalCommandPaletteView: View {
                 DispatchQueue.main.async {
                     surfaceView.window?.makeFirstResponder(surfaceView)
                 }
+            }
+        }
+    }
+
+    var body: some View {
+        if isPresented {
+            if #available(macOS 26.0, *) {
+                mainView
+                    .transition(.blurReplace.combined(with: .scale(1.125)))
+            } else {
+                mainView
+                    .transition(.opacity)
             }
         }
     }
