@@ -48,10 +48,14 @@ struct CommandPaletteView: View {
             CommandPaletteQuery(query: $query) { event in
                 switch (event) {
                 case .exit:
-                    isPresented = false
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        isPresented = false
+                    }
 
                 case .submit:
-                    isPresented = false
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        isPresented = false
+                    }
                     selectedOption?.action()
 
                 case .move(.up):
@@ -99,7 +103,9 @@ struct CommandPaletteView: View {
                 options: filteredOptions,
                 selectedIndex: $selectedIndex,
                 hoveredOptionID: $hoveredOptionID) { option in
-                    isPresented = false
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        isPresented = false
+                    }
                     option.action()
                 }
         }
